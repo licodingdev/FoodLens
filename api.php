@@ -103,7 +103,7 @@ Yanıtını SADECE aşağıdaki JSON formatında ver, ekstra açıklama ekleme:
 
     // API isteği için data
     $data = [
-        "model" => "openai/gpt-4o-mini",
+        "model" => "anthropic/claude-3.5-sonnet",
         "messages" => [
             [
                 "role" => "system",
@@ -196,6 +196,9 @@ Yanıtını SADECE aşağıdaki JSON formatında ver, ekstra açıklama ekleme:
         return $ing['name'];
     }, $aiResponse['ingredients'] ?? []);
 
+    // ingredients_detail direkt olarak JSON string olarak kaydedilmeli
+    $ingredientsDetail = json_encode($aiResponse['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
+
     $stmt->execute([
         'user_id' => $_COOKIE['user_id'],
         'image_path' => $uploadPath,
@@ -208,7 +211,7 @@ Yanıtını SADECE aşağıdaki JSON formatında ver, ekstra açıklama ekleme:
         'carbs' => floatval($aiResponse['nutrition']['carbs'] ?? 0),
         'fat' => floatval($aiResponse['nutrition']['fat'] ?? 0),
         'ingredients' => json_encode($ingredients, JSON_UNESCAPED_UNICODE),
-        'ingredients_detail' => json_encode($aiResponse['ingredients'] ?? [], JSON_UNESCAPED_UNICODE),
+        'ingredients_detail' => $ingredientsDetail,
         'cooking_method' => $aiResponse['cooking_method'] ?? null,
         'confidence_score' => intval($aiResponse['confidence_score'] ?? 0)
     ]);

@@ -913,13 +913,29 @@ if(!$auth->checkAuth()) {
         const template = ingredientsContainer.querySelector('.ingredient-item');
         ingredientsContainer.innerHTML = ''; // Mevcut malzemeleri temizle
 
-        data.ingredients.forEach(ingredient => {
+        // ingredients_detail JSON string ise parse et
+        let ingredients = data.ingredients;
+        if (typeof ingredients === 'string') {
+            try {
+                ingredients = JSON.parse(ingredients);
+            } catch (e) {
+                console.error('Ingredients parsing error:', e);
+            }
+        }
+
+        // Her malzeme için yeni bir element oluştur
+        ingredients.forEach(ingredient => {
             const item = template.cloneNode(true);
             item.classList.remove('hidden');
             
-            item.querySelector('.ingredient-name').textContent = ingredient.name;
-            item.querySelector('.ingredient-amount').textContent = ingredient.amount;
-            item.querySelector('.ingredient-percentage').style.width = `${ingredient.percentage}%`;
+            // Malzeme adı ve miktarını ayarla
+            const nameEl = item.querySelector('.ingredient-name');
+            const amountEl = item.querySelector('.ingredient-amount');
+            const percentageEl = item.querySelector('.ingredient-percentage');
+            
+            if (nameEl) nameEl.textContent = ingredient.name;
+            if (amountEl) amountEl.textContent = ingredient.amount;
+            if (percentageEl) percentageEl.style.width = `${ingredient.percentage}%`;
             
             ingredientsContainer.appendChild(item);
         });
