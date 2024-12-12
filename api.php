@@ -35,10 +35,10 @@ try {
     }
 
     // Görsel tipini kontrol et
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     $fileType = $_FILES['image']['type'];
     if (!in_array($fileType, $allowedTypes)) {
-        throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
+        throw new Exception('Geçersiz dosya tipi. Sadece JPG, PNG ve WebP desteklenir.');
     }
 
     // Dosyayı kaydet
@@ -47,7 +47,14 @@ try {
         mkdir($uploadDir, 0777, true);
     }
 
-    $fileName = uniqid() . '_' . basename($_FILES['image']['name']);
+    // Dosya uzantısını kontrol et ve düzelt
+    $extension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+    if ($extension === 'webp') {
+        $fileName = uniqid() . '.webp';
+    } else {
+        $fileName = uniqid() . '_' . basename($_FILES['image']['name']);
+    }
+    
     $uploadPath = $uploadDir . $fileName;
 
     if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath)) {
