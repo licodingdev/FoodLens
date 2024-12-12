@@ -112,11 +112,29 @@ try {
     $aiContent = $result['choices'][0]['message']['content'];
     $analysisData = json_decode($aiContent, true);
 
-    // Veritabanına kaydet
+    // Cookie kontrolü
+    if (!isset($_COOKIE['user_id']) || !isset($_COOKIE['auth_token'])) {
+        throw new Exception('Kullanıcı girişi gerekli');
+    }
+
+    // Veritabanı bağlantısı
     require_once 'config/db.php';
     $database = new Database();
     $db = $database->getConnection();
 
+    // Auth token kontrolü
+    $auth = new Auth($db);
+    if (!$auth->checkAuth()) {
+        throw new Exception('Geçersiz oturum');
+    }
+
+    // User ID'yi cookie'den al
+    $userId = $_COOKIE['user_id'];
+
+    // Malzemeleri JSON'a çevir
+    $ingredients = json_encode($analysisData['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
+
+    // Veritabanına kaydet
     $sql = "INSERT INTO food_analyses (
         user_id, 
         image_path, 
@@ -144,13 +162,6 @@ try {
     )";
 
     $stmt = $db->prepare($sql);
-
-    // Session'dan user_id'yi al
-    session_start();
-    $userId = $_SESSION['user_id'] ?? throw new Exception('Kullanıcı girişi gerekli');
-
-    // Malzemeleri JSON'a çevir
-    $ingredients = json_encode($analysisData['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
 
     $stmt->execute([
         'user_id' => $userId,
