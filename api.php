@@ -66,25 +66,40 @@ try {
     $imageUrl = $protocol . $_SERVER['HTTP_HOST'] . 
                 dirname($_SERVER['REQUEST_URI']) . '/' . $uploadPath;
 
-    // System prompt'u daha spesifik hale getirelim
-    $systemPrompt = "Sen bir yemek analiz uzmanısın. Görüntüdeki yemeği analiz edip SADECE aşağıdaki JSON formatında yanıt vermelisin. 
-    Başka bir açıklama veya metin EKLEME, SADECE JSON döndür:
+    // System prompt'u daha detaylı hale getirelim
+    $systemPrompt = "Sen bir profesyonel beslenme ve gıda analiz uzmanısın. Görüntüdeki yemeği en detaylı şekilde analiz etmelisin. Şu noktalara dikkat et:
 
-    {
-        \"food_name\": \"[yemek adı]\",
-        \"portion\": {
-            \"amount\": \"[miktar] gr/ml\",
-            \"count\": [sayı]
-        },
-        \"nutrition\": {
-            \"calories\": [kalori sayısı],
-            \"protein\": [protein miktarı],
-            \"carbs\": [karbonhidrat miktarı],
-            \"fat\": [yağ miktarı]
-        },
-        \"ingredients\": [\"malzeme1\", \"malzeme2\", ...],
-        \"confidence_score\": [0-100 arası sayı]
-    }";
+1. Tabağın doluluk oranına bakarak porsiyon miktarını tahmin et
+2. Yemeğin boyutunu ve yoğunluğunu göz önünde bulundurarak gram/ml miktarını belirle
+3. Malzemelerin oranlarını dikkate al
+4. Tabaktaki garnitür ve yan ürünleri de hesaba kat
+5. Yemeğin pişirme yöntemini de göz önünde bulundur (kızartma, haşlama vs.)
+
+Yanıtını SADECE aşağıdaki JSON formatında ver, ekstra açıklama ekleme:
+
+{
+    \"food_name\": \"[yemek adı]\",
+    \"portion\": {
+        \"amount\": \"[miktar] gr/ml\",
+        \"count\": [sayı],
+        \"plate_fullness\": [0-100 arası doluluk yüzdesi]
+    },
+    \"nutrition\": {
+        \"calories\": [kalori sayısı],
+        \"protein\": [protein miktarı gr],
+        \"carbs\": [karbonhidrat miktarı gr],
+        \"fat\": [yağ miktarı gr]
+    },
+    \"ingredients\": [
+        {
+            \"name\": \"[malzeme adı]\",
+            \"percentage\": [0-100 arası yüzde],
+            \"amount\": \"[miktar] gr/ml\"
+        }
+    ],
+    \"cooking_method\": \"[pişirme yöntemi]\",
+    \"confidence_score\": [0-100 arası sayı]
+}";
 
     // API isteği için data
     $data = [
@@ -147,12 +162,15 @@ try {
         image_path, 
         food_name, 
         portion_amount, 
-        portion_count, 
+        portion_count,
+        plate_fullness,
         calories, 
         protein, 
         carbs, 
         fat, 
-        ingredients, 
+        ingredients,
+        ingredients_detail,
+        cooking_method,
         confidence_score
     ) VALUES (
         :user_id,
@@ -160,18 +178,23 @@ try {
         :food_name,
         :portion_amount,
         :portion_count,
+        :plate_fullness,
         :calories,
         :protein,
         :carbs,
         :fat,
         :ingredients,
+        :ingredients_detail,
+        :cooking_method,
         :confidence_score
     )";
 
     $stmt = $db->prepare($sql);
 
     // Malzemeleri JSON'a çevir
-    $ingredients = json_encode($aiResponse['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
+    $ingredients = array_map(function($ing) {
+        return $ing['name'];
+    }, $aiResponse['ingredients'] ?? []);
 
     $stmt->execute([
         'user_id' => $_COOKIE['user_id'],
@@ -179,11 +202,14 @@ try {
         'food_name' => $aiResponse['food_name'] ?? '',
         'portion_amount' => $aiResponse['portion']['amount'] ?? '',
         'portion_count' => intval($aiResponse['portion']['count'] ?? 1),
+        'plate_fullness' => intval($aiResponse['portion']['plate_fullness'] ?? 0),
         'calories' => intval($aiResponse['nutrition']['calories'] ?? 0),
         'protein' => floatval($aiResponse['nutrition']['protein'] ?? 0),
         'carbs' => floatval($aiResponse['nutrition']['carbs'] ?? 0),
         'fat' => floatval($aiResponse['nutrition']['fat'] ?? 0),
-        'ingredients' => $ingredients,
+        'ingredients' => json_encode($ingredients, JSON_UNESCAPED_UNICODE),
+        'ingredients_detail' => json_encode($aiResponse['ingredients'] ?? [], JSON_UNESCAPED_UNICODE),
+        'cooking_method' => $aiResponse['cooking_method'] ?? null,
         'confidence_score' => intval($aiResponse['confidence_score'] ?? 0)
     ]);
 
