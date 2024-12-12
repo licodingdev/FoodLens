@@ -4,47 +4,20 @@ header('Content-Type: application/json');
 // API Anahtarı
 $OPENROUTER_API_KEY = "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";
 
+// Görsel yükleme kontrolü
+if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+    throw new Exception('Görsel yükleme hatası: ' . ($_FILES['image']['error'] ?? 'Dosya yok'));
+}
+
+// Görsel tipini kontrol et
+$allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+$fileType = $_FILES['image']['type'];
+if (!in_array($fileType, $allowedTypes)) {
+    throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
+}
+
 try {
-    // Hata raporlamayı aktif et
-    ini_set('display_errors', 1);
-    error_reporting(E_ALL);
-
-    // Dosya kontrolü daha detaylı yapılsın
-    if (!isset($_FILES['image'])) {
-        throw new Exception('Dosya gönderilmedi');
-    }
-
-    if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-        $uploadErrors = array(
-            UPLOAD_ERR_INI_SIZE => 'Dosya boyutu PHP limitini aşıyor',
-            UPLOAD_ERR_FORM_SIZE => 'Dosya boyutu form limitini aşıyor',
-            UPLOAD_ERR_PARTIAL => 'Dosya kısmen yüklendi',
-            UPLOAD_ERR_NO_FILE => 'Dosya yüklenmedi',
-            UPLOAD_ERR_NO_TMP_DIR => 'Geçici klasör bulunamadı',
-            UPLOAD_ERR_CANT_WRITE => 'Dosya yazılamadı',
-            UPLOAD_ERR_EXTENSION => 'Dosya yükleme PHP tarafından durduruldu',
-        );
-        throw new Exception('Yükleme hatası: ' . 
-            ($uploadErrors[$_FILES['image']['error']] ?? 'Bilinmeyen hata'));
-    }
-
-    // Dosya boyutu kontrolü
-    $maxFileSize = 5 * 1024 * 1024; // 5MB
-    if ($_FILES['image']['size'] > $maxFileSize) {
-        throw new Exception('Dosya boyutu çok büyük (max: 5MB)');
-    }
-
-    // MIME type kontrolü
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $_FILES['image']['tmp_name']);
-    finfo_close($finfo);
-
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!in_array($mimeType, $allowedTypes)) {
-        throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
-    }
-
-    // Base64 dönüşümü
+    // Görseli base64'e çevir
     $imageData = file_get_contents($_FILES['image']['tmp_name']);
     if ($imageData === false) {
         throw new Exception('Görsel okunamadı');
@@ -71,14 +44,9 @@ try {
         \"confidence_score\": [0-100 arası sayı]
     }";
 
-    // Base64 yerine URL oluştur
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-    $imageUrl = $protocol . $_SERVER['HTTP_HOST'] . 
-                dirname($_SERVER['REQUEST_URI']) . '/uploads/foods/' . $fileName;
-
     // API isteği için data
     $data = [
-        "model" => "openai/gpt-4-vision-preview",
+        "model" => "openai/gpt-4o-mini",
         "messages" => [
             [
                 "role" => "system",
@@ -94,7 +62,7 @@ try {
                     [
                         "type" => "image_url",
                         "image_url" => [
-                            "url" => $imageUrl  // Base64 yerine URL kullan
+                            "url" => "data:image/" . substr($fileType, 6) . ";base64," . $base64Image
                         ]
                     ]
                 ]
@@ -122,66 +90,30 @@ try {
     
     curl_close($ch);
 
-    // API yanıtı kontrolü
-    if ($response === false) {
-        throw new Exception('API yanıtı alınamadı: ' . curl_error($ch));
-    }
-
+    // API yanıtını parse et
     $result = json_decode($response, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        throw new Exception('API yanıtı JSON formatında değil: ' . json_last_error_msg());
-    }
-
-    if (!isset($result['choices'][0]['message']['content'])) {
-        throw new Exception('API yanıtı beklenen formatta değil');
-    }
-
-    // Debug bilgisi ekle
-    $debug = [
-        'original_response' => $response,
-        'parsed_response' => $result,
-        'mime_type' => $mimeType,
-        'file_size' => $_FILES['image']['size']
-    ];
-
-    // AI analizi yap
-    $aiContent = $result['choices'][0]['message']['content'];
-    $analysisData = json_decode($aiContent, true);
-
-    // Analizi veritabanına kaydet
-    require_once 'classes/FoodAnalysis.php';
-    $analysis = new FoodAnalysis($db);
     
-    $saveResult = $analysis->saveAnalysis(
-        $_COOKIE['user_id'], 
-        $_FILES['image'],
-        $analysisData
-    );
-
-    if(!$saveResult['success']) {
-        throw new Exception($saveResult['message']);
-    }
-
-    // Başarılı yanıt
+    // AI'dan gelen yanıtı al
+    $aiContent = $result['choices'][0]['message']['content'];
+    
+    // AI yanıtını JSON'a çevir
+    $aiResponse = json_decode($aiContent, true);
+    
+    // Debug için yanıtı görelim
     echo json_encode([
         'success' => true,
-        'message' => 'Analiz başarıyla tamamlandı',
-        'data' => $analysisData,
-        'analysis_id' => $saveResult['id'],
-        'debug' => $debug  // Debug bilgisini ekle
+        'debug' => [
+            'original_response' => $result,
+            'ai_content' => $aiContent,
+            'parsed_response' => $aiResponse
+        ],
+        'data' => $aiResponse
     ]);
 
 } catch (Exception $e) {
     http_response_code(500);
-    error_log('API Error: ' . $e->getMessage());  // Hata logla
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage(),
-        'file_info' => isset($_FILES['image']) ? [
-            'name' => $_FILES['image']['name'],
-            'type' => $_FILES['image']['type'],
-            'size' => $_FILES['image']['size'],
-            'error' => $_FILES['image']['error']
-        ] : 'No file data'
+        'error' => $e->getMessage()
     ]);
 }
