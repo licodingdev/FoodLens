@@ -910,35 +910,31 @@ if(!$auth->checkAuth()) {
 
         // Malzeme detaylarını güncelle
         const ingredientsContainer = document.getElementById('ingredientsDetail');
-        const template = ingredientsContainer.querySelector('.ingredient-item');
         ingredientsContainer.innerHTML = ''; // Mevcut malzemeleri temizle
 
-        // ingredients_detail JSON string ise parse et
-        let ingredients = data.ingredients;
-        if (typeof ingredients === 'string') {
-            try {
-                ingredients = JSON.parse(ingredients);
-            } catch (e) {
-                console.error('Ingredients parsing error:', e);
-            }
-        }
-
-        // Her malzeme için yeni bir element oluştur
-        ingredients.forEach(ingredient => {
-            const item = template.cloneNode(true);
-            item.classList.remove('hidden');
+        // data.ingredients array'ini kullan
+        data.ingredients.forEach(ingredient => {
+            // Yeni bir malzeme öğesi oluştur
+            const item = document.createElement('div');
+            item.className = 'ingredient-item';
             
-            // Malzeme adı ve miktarını ayarla
-            const nameEl = item.querySelector('.ingredient-name');
-            const amountEl = item.querySelector('.ingredient-amount');
-            const percentageEl = item.querySelector('.ingredient-percentage');
-            
-            if (nameEl) nameEl.textContent = ingredient.name;
-            if (amountEl) amountEl.textContent = ingredient.amount;
-            if (percentageEl) percentageEl.style.width = `${ingredient.percentage}%`;
+            // HTML yapısını oluştur
+            item.innerHTML = `
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[13px] text-gray-700">${ingredient.name}</span>
+                    <span class="text-[11px] text-gray-500">${ingredient.amount}</span>
+                </div>
+                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full" 
+                         style="width: ${ingredient.percentage}%"></div>
+                </div>
+            `;
             
             ingredientsContainer.appendChild(item);
         });
+
+        // Sonuç bölümünü göster
+        document.getElementById('resultSection').classList.remove('hidden');
     }
     </script>
 </body>
