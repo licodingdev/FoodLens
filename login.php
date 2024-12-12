@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1Giriş Yap - FoodLens AI</title>
+    <title>naberGiriş Yap - FoodLens AI</title>
     
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
