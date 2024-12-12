@@ -17,7 +17,7 @@ if(!$auth->checkAuth()) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodLens AI | Yemek Analiz</title>
+    <title>1FoodLens AI | Yemek Analiz</title>
     
     <!-- Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
