@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 // API Anahtarı
-$OPENROUTER_API_KEY = "your_api_key_here";
+$OPENROUTER_API_KEY = "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";
 
 // Görsel yükleme kontrolü
 if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
