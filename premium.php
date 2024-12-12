@@ -74,7 +74,7 @@ if(!$auth->checkAuth()) {
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-medium text-gray-900">Aylık Plan</h3>
-                                    <p class="text-xs text-gray-500">Otomatik olarak <strong>yenenilenmez!</strong></p>
+                                    <p class="text-xs text-gray-500">Otomatik olarak <strong>yenilenmez!</strong></p>
                                 </div>
                             </div>
                             <div class="text-right">
@@ -99,7 +99,7 @@ if(!$auth->checkAuth()) {
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-medium text-gray-900">Yıllık Plan</h3>
-                                    <p class="text-xs text-gray-500">Otomatik olarak <strong>yenenilenmez!</strong></p>
+                                    <p class="text-xs text-gray-500">Otomatik olarak <strong>yenilenmez!</strong></p>
                                 </div>
                             </div>
                             <div class="text-right">
