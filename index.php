@@ -501,7 +501,7 @@ if(!$auth->checkAuth()) {
             <!-- Result Section -->
             <div id="resultSection" class="hidden fade-in">
                 <div class="bg-gradient-to-b from-white/80 to-white/40 backdrop-blur-sm rounded-[32px] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.05)] p-8">
-                    <!-- Success Icon - Daha minimal -->
+                    <!-- Success Icon - Minimal -->
                     <div class="mb-8">
                         <div class="w-10 h-10 mx-auto bg-green-500/5 rounded-xl flex items-center justify-center">
                             <i class="fas fa-check text-green-500 text-sm"></i>
@@ -516,13 +516,17 @@ if(!$auth->checkAuth()) {
 
                     <!-- Result Content -->
                     <div class="space-y-8">
-                        <!-- Food Name - Daha zarif -->
+                        <!-- Food Name and Portion -->
                         <div class="text-center">
-                            <h2 class="text-base text-gray-800 mb-1">Mercimek Çorbası</h2>
-                            <p class="text-[11px] text-gray-400">1 porsiyon (300ml)</p>
+                            <h2 class="text-base text-gray-800 mb-1" data-result="food_name">Mercimek Çorbası</h2>
+                            <div class="flex items-center justify-center gap-2">
+                                <p class="text-[11px] text-gray-400" data-result="portion">1 porsiyon (300ml)</p>
+                                <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                <p class="text-[11px] text-gray-400">Tabak Doluluk: <span data-result="plate_fullness">75</span>%</p>
+                            </div>
                         </div>
 
-                        <!-- Nutrition Grid - Ultra minimal -->
+                        <!-- Nutrition Grid -->
                         <div class="grid grid-cols-2 gap-3">
                             <div class="bg-gray-50/50 rounded-2xl p-4 relative">
                                 <div class="absolute inset-[2px] rounded-xl border border-dashed border-gray-200/60 pointer-events-none"></div>
@@ -577,7 +581,41 @@ if(!$auth->checkAuth()) {
                             </div>
                         </div>
 
-                        <!-- Action Buttons - Daha minimal -->
+                        <!-- Ingredients Detail -->
+                        <div class="bg-gray-50/50 rounded-2xl p-4 relative">
+                            <div class="absolute inset-[2px] rounded-xl border border-dashed border-gray-200/60 pointer-events-none"></div>
+                            <div class="relative">
+                                <!-- Header -->
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="w-6 h-6 rounded-lg bg-amber-500/5 flex items-center justify-center">
+                                        <i class="fas fa-list text-amber-500 text-[10px]"></i>
+                                    </div>
+                                    <span class="text-[13px] font-medium text-gray-700">Malzeme Detayları</span>
+                                </div>
+
+                                <!-- Ingredients List -->
+                                <div class="space-y-3" id="ingredientsDetail">
+                                    <!-- Her malzeme için template -->
+                                    <div class="ingredient-item hidden">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-[13px] text-gray-700 ingredient-name">Malzeme Adı</span>
+                                            <span class="text-[11px] text-gray-500 ingredient-amount">100gr</span>
+                                        </div>
+                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div class="ingredient-percentage h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cooking Method -->
+                        <div class="flex items-center justify-center gap-2 bg-gray-50/50 rounded-xl py-2">
+                            <i class="fas fa-fire-flame-simple text-orange-400 text-xs"></i>
+                            <span class="text-[11px] text-gray-600" data-result="cooking_method">Pişirme Yöntemi</span>
+                        </div>
+
+                        <!-- Action Buttons -->
                         <div class="space-y-2.5 pt-4">
                             <button onclick="location.reload()" class="w-full h-10 bg-gray-900 rounded-xl text-white text-[12px] transition-all flex items-center justify-center gap-2 hover:bg-gray-800">
                                 <i class="fas fa-plus text-[10px]"></i>
@@ -854,6 +892,38 @@ if(!$auth->checkAuth()) {
             }
         });
     });
+    </script>
+
+    <script>
+    function updateResults(data) {
+        // Temel bilgileri güncelle
+        document.querySelector('[data-result="food_name"]').textContent = data.food_name;
+        document.querySelector('[data-result="portion"]').textContent = 
+            `${data.portion.count} porsiyon (${data.portion.amount})`;
+        document.querySelector('[data-result="plate_fullness"]').textContent = 
+            data.portion.plate_fullness;
+        document.querySelector('[data-result="cooking_method"]').textContent = 
+            data.cooking_method;
+
+        // Besin değerlerini güncelle
+        // ... existing nutrition updates ...
+
+        // Malzeme detaylarını güncelle
+        const ingredientsContainer = document.getElementById('ingredientsDetail');
+        const template = ingredientsContainer.querySelector('.ingredient-item');
+        ingredientsContainer.innerHTML = ''; // Mevcut malzemeleri temizle
+
+        data.ingredients.forEach(ingredient => {
+            const item = template.cloneNode(true);
+            item.classList.remove('hidden');
+            
+            item.querySelector('.ingredient-name').textContent = ingredient.name;
+            item.querySelector('.ingredient-amount').textContent = ingredient.amount;
+            item.querySelector('.ingredient-percentage').style.width = `${ingredient.percentage}%`;
+            
+            ingredientsContainer.appendChild(item);
+        });
+    }
     </script>
 </body>
 </html>
