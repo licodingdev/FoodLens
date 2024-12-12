@@ -104,24 +104,84 @@ try {
     // API yanıtını parse et
     $result = json_decode($response, true);
     
-    // AI'dan gelen yanıtı al
+    if (!isset($result['choices'][0]['message']['content'])) {
+        throw new Exception('API yanıtı beklenen formatta değil');
+    }
+
+    // AI'dan gelen yanıtı al ve JSON'a çevir
     $aiContent = $result['choices'][0]['message']['content'];
-    
-    // AI yanıtını JSON'a çevir
-    $aiResponse = json_decode($aiContent, true);
-    
-    // Debug için yanıtı görelim
+    $analysisData = json_decode($aiContent, true);
+
+    // Veritabanına kaydet
+    require_once 'config/db.php';
+    $database = new Database();
+    $db = $database->getConnection();
+
+    $sql = "INSERT INTO food_analyses (
+        user_id, 
+        image_path, 
+        food_name, 
+        portion_amount, 
+        portion_count, 
+        calories, 
+        protein, 
+        carbs, 
+        fat, 
+        ingredients, 
+        confidence_score
+    ) VALUES (
+        :user_id,
+        :image_path,
+        :food_name,
+        :portion_amount,
+        :portion_count,
+        :calories,
+        :protein,
+        :carbs,
+        :fat,
+        :ingredients,
+        :confidence_score
+    )";
+
+    $stmt = $db->prepare($sql);
+
+    // Session'dan user_id'yi al
+    session_start();
+    $userId = $_SESSION['user_id'] ?? throw new Exception('Kullanıcı girişi gerekli');
+
+    // Malzemeleri JSON'a çevir
+    $ingredients = json_encode($analysisData['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
+
+    $stmt->execute([
+        'user_id' => $userId,
+        'image_path' => $uploadPath,
+        'food_name' => $analysisData['food_name'] ?? '',
+        'portion_amount' => $analysisData['portion']['amount'] ?? '',
+        'portion_count' => $analysisData['portion']['count'] ?? 1,
+        'calories' => $analysisData['nutrition']['calories'] ?? 0,
+        'protein' => $analysisData['nutrition']['protein'] ?? 0,
+        'carbs' => $analysisData['nutrition']['carbs'] ?? 0,
+        'fat' => $analysisData['nutrition']['fat'] ?? 0,
+        'ingredients' => $ingredients,
+        'confidence_score' => $analysisData['confidence_score'] ?? 0
+    ]);
+
+    $analysisId = $db->lastInsertId();
+
+    // Başarılı yanıt
     echo json_encode([
         'success' => true,
+        'message' => 'Analiz başarıyla tamamlandı ve kaydedildi',
+        'data' => $analysisData,
+        'analysis_id' => $analysisId,
         'debug' => [
-            'original_response' => $result,
-            'ai_content' => $aiContent,
-            'parsed_response' => $aiResponse
-        ],
-        'data' => $aiResponse
+            'image_url' => $imageUrl,
+            'raw_response' => $response
+        ]
     ]);
 
 } catch (Exception $e) {
+    error_log('Error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
