@@ -17,12 +17,23 @@ if (!in_array($fileType, $allowedTypes)) {
 }
 
 try {
-    // Görseli base64'e çevir
-    $imageData = file_get_contents($_FILES['image']['tmp_name']);
-    if ($imageData === false) {
-        throw new Exception('Görsel okunamadı');
+    // Dosyayı kaydet
+    $uploadDir = 'uploads/foods/';
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
     }
-    $base64Image = base64_encode($imageData);
+
+    $fileName = uniqid() . '_' . basename($_FILES['image']['name']);
+    $uploadPath = $uploadDir . $fileName;
+
+    if (!move_uploaded_file($_FILES['image']['tmp_name'], $uploadPath)) {
+        throw new Exception('Dosya yüklenemedi');
+    }
+
+    // URL oluştur
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+    $imageUrl = $protocol . $_SERVER['HTTP_HOST'] . 
+                dirname($_SERVER['REQUEST_URI']) . '/' . $uploadPath;
 
     // System prompt'u daha spesifik hale getirelim
     $systemPrompt = "Sen bir yemek analiz uzmanısın. Görüntüdeki yemeği analiz edip SADECE aşağıdaki JSON formatında yanıt vermelisin. 
@@ -57,12 +68,12 @@ try {
                 "content" => [
                     [
                         "type" => "text",
-                        "text" => "Bu görseldeki yemeği analiz et ve SADECE belirtilen JSON formatında yanıt ver. Başka açıklama ekleme."
+                        "text" => "Bu görseldeki yemeği analiz et ve SADECE belirtilen JSON formatında yanıt ver."
                     ],
                     [
                         "type" => "image_url",
                         "image_url" => [
-                            "url" => "data:image/" . substr($fileType, 6) . ";base64," . $base64Image
+                            "url" => $imageUrl
                         ]
                     ]
                 ]
