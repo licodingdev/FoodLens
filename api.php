@@ -1,22 +1,46 @@
 <?php
 header('Content-Type: application/json');
+require_once 'config/db.php';
+require_once 'classes/Auth.php';
+
+// Session başlat (debug için)
+session_start();
+$_SESSION['api_errors'] = [];
 
 // API Anahtarı
 $OPENROUTER_API_KEY = "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";
 
-// Görsel yükleme kontrolü
-if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-    throw new Exception('Görsel yükleme hatası: ' . ($_FILES['image']['error'] ?? 'Dosya yok'));
-}
-
-// Görsel tipini kontrol et
-$allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-$fileType = $_FILES['image']['type'];
-if (!in_array($fileType, $allowedTypes)) {
-    throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
-}
-
 try {
+    // Cookie kontrolü
+    if (!isset($_COOKIE['user_id']) || !isset($_COOKIE['auth_token'])) {
+        throw new Exception('Kullanıcı girişi gerekli');
+    }
+
+    // Veritabanı bağlantısı
+    $database = new Database();
+    $db = $database->getConnection();
+    if (!$db) {
+        throw new Exception('Veritabanı bağlantısı kurulamadı');
+    }
+
+    // Auth token kontrolü
+    $auth = new Auth($db);
+    if (!$auth->checkAuth()) {
+        throw new Exception('Geçersiz oturum');
+    }
+
+    // Görsel yükleme kontrolü
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('Görsel yükleme hatası: ' . ($_FILES['image']['error'] ?? 'Dosya yok'));
+    }
+
+    // Görsel tipini kontrol et
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    $fileType = $_FILES['image']['type'];
+    if (!in_array($fileType, $allowedTypes)) {
+        throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
+    }
+
     // Dosyayı kaydet
     $uploadDir = 'uploads/foods/';
     if (!file_exists($uploadDir)) {
@@ -109,10 +133,59 @@ try {
     
     // AI yanıtını JSON'a çevir
     $aiResponse = json_decode($aiContent, true);
-    
+
+    // Veritabanına kaydet
+    $sql = "INSERT INTO food_analyses (
+        user_id, 
+        image_path, 
+        food_name, 
+        portion_amount, 
+        portion_count, 
+        calories, 
+        protein, 
+        carbs, 
+        fat, 
+        ingredients, 
+        confidence_score
+    ) VALUES (
+        :user_id,
+        :image_path,
+        :food_name,
+        :portion_amount,
+        :portion_count,
+        :calories,
+        :protein,
+        :carbs,
+        :fat,
+        :ingredients,
+        :confidence_score
+    )";
+
+    $stmt = $db->prepare($sql);
+
+    // Malzemeleri JSON'a çevir
+    $ingredients = json_encode($aiResponse['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
+
+    $stmt->execute([
+        'user_id' => $_COOKIE['user_id'],
+        'image_path' => $uploadPath,
+        'food_name' => $aiResponse['food_name'] ?? '',
+        'portion_amount' => $aiResponse['portion']['amount'] ?? '',
+        'portion_count' => intval($aiResponse['portion']['count'] ?? 1),
+        'calories' => intval($aiResponse['nutrition']['calories'] ?? 0),
+        'protein' => floatval($aiResponse['nutrition']['protein'] ?? 0),
+        'carbs' => floatval($aiResponse['nutrition']['carbs'] ?? 0),
+        'fat' => floatval($aiResponse['nutrition']['fat'] ?? 0),
+        'ingredients' => $ingredients,
+        'confidence_score' => intval($aiResponse['confidence_score'] ?? 0)
+    ]);
+
+    $analysisId = $db->lastInsertId();
+
     // Debug için yanıtı görelim
     echo json_encode([
         'success' => true,
+        'analysis_id' => $analysisId,
         'debug' => [
             'original_response' => $result,
             'ai_content' => $aiContent,
@@ -122,6 +195,13 @@ try {
     ]);
 
 } catch (Exception $e) {
+    // Hatayı session'a kaydet
+    $_SESSION['api_errors'][] = [
+        'time' => date('Y-m-d H:i:s'),
+        'message' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ];
+
     http_response_code(500);
     echo json_encode([
         'success' => false,
