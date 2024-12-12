@@ -1,22 +1,46 @@
 <?php
 header('Content-Type: application/json');
+require_once 'config/db.php';
+require_once 'classes/Auth.php';
+
+// Session başlat
+session_start();
+$_SESSION['api_errors'] = []; // Hata array'ini başlat
 
 // API Anahtarı
 $OPENROUTER_API_KEY = "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";
 
-// Görsel yükleme kontrolü
-if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-    throw new Exception('Görsel yükleme hatası: ' . ($_FILES['image']['error'] ?? 'Dosya yok'));
-}
-
-// Görsel tipini kontrol et
-$allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-$fileType = $_FILES['image']['type'];
-if (!in_array($fileType, $allowedTypes)) {
-    throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
-}
-
 try {
+    // Görsel yükleme kontrolü
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('Görsel yükleme hatası: ' . ($_FILES['image']['error'] ?? 'Dosya yok'));
+    }
+
+    // Görsel tipini kontrol et
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    $fileType = $_FILES['image']['type'];
+    if (!in_array($fileType, $allowedTypes)) {
+        throw new Exception('Geçersiz dosya tipi. Sadece JPG ve PNG desteklenir.');
+    }
+
+    // Cookie ve auth kontrolü
+    if (!isset($_COOKIE['user_id']) || !isset($_COOKIE['auth_token'])) {
+        throw new Exception('Kullanıcı girişi gerekli');
+    }
+
+    // Veritabanı bağlantısı
+    $database = new Database();
+    $db = $database->getConnection();
+    if (!$db) {
+        throw new Exception('Veritabanı bağlantısı kurulamadı');
+    }
+
+    // Auth token kontrolü
+    $auth = new Auth($db);
+    if (!$auth->checkAuth()) {
+        throw new Exception('Geçersiz oturum');
+    }
+
     // Dosyayı kaydet
     $uploadDir = 'uploads/foods/';
     if (!file_exists($uploadDir)) {
@@ -35,29 +59,9 @@ try {
     $imageUrl = $protocol . $_SERVER['HTTP_HOST'] . 
                 dirname($_SERVER['REQUEST_URI']) . '/' . $uploadPath;
 
-    // System prompt'u daha spesifik hale getirelim
-    $systemPrompt = "Sen bir yemek analiz uzmanısın. Görüntüdeki yemeği analiz edip SADECE aşağıdaki JSON formatında yanıt vermelisin. 
-    Başka bir açıklama veya metin EKLEME, SADECE JSON döndür:
-
-    {
-        \"food_name\": \"[yemek adı]\",
-        \"portion\": {
-            \"amount\": \"[miktar] gr/ml\",
-            \"count\": [sayı]
-        },
-        \"nutrition\": {
-            \"calories\": [kalori sayısı],
-            \"protein\": [protein miktarı],
-            \"carbs\": [karbonhidrat miktarı],
-            \"fat\": [yağ miktarı]
-        },
-        \"ingredients\": [\"malzeme1\", \"malzeme2\", ...],
-        \"confidence_score\": [0-100 arası sayı]
-    }";
-
     // API isteği için data
     $data = [
-        "model" => "openai/gpt-4o-mini",
+        "model" => "openai/gpt-4-vision-preview",
         "messages" => [
             [
                 "role" => "system",
@@ -89,7 +93,8 @@ try {
         CURLOPT_POSTFIELDS => json_encode($data),
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
-            'Authorization: Bearer ' . $OPENROUTER_API_KEY
+            'Authorization: Bearer ' . $OPENROUTER_API_KEY,
+            'HTTP-Referer: http://localhost:8080'  // Referer eklendi
         ]
     ]);
 
@@ -112,24 +117,9 @@ try {
     $aiContent = $result['choices'][0]['message']['content'];
     $analysisData = json_decode($aiContent, true);
 
-    // Cookie kontrolü
-    if (!isset($_COOKIE['user_id']) || !isset($_COOKIE['auth_token'])) {
-        throw new Exception('Kullanıcı girişi gerekli');
+    if (!$analysisData) {
+        throw new Exception('AI yanıtı JSON formatında değil');
     }
-
-    // Veritabanı bağlantısı
-    require_once 'config/db.php';
-    $database = new Database();
-    $db = $database->getConnection();
-
-    // Auth token kontrolü
-    $auth = new Auth($db);
-    if (!$auth->checkAuth()) {
-        throw new Exception('Geçersiz oturum');
-    }
-
-    // User ID'yi cookie'den al
-    $userId = $_COOKIE['user_id'];
 
     // Malzemeleri JSON'a çevir
     $ingredients = json_encode($analysisData['ingredients'] ?? [], JSON_UNESCAPED_UNICODE);
@@ -164,17 +154,17 @@ try {
     $stmt = $db->prepare($sql);
 
     $stmt->execute([
-        'user_id' => $userId,
+        'user_id' => $_COOKIE['user_id'],
         'image_path' => $uploadPath,
         'food_name' => $analysisData['food_name'] ?? '',
         'portion_amount' => $analysisData['portion']['amount'] ?? '',
         'portion_count' => $analysisData['portion']['count'] ?? 1,
-        'calories' => $analysisData['nutrition']['calories'] ?? 0,
-        'protein' => $analysisData['nutrition']['protein'] ?? 0,
-        'carbs' => $analysisData['nutrition']['carbs'] ?? 0,
-        'fat' => $analysisData['nutrition']['fat'] ?? 0,
+        'calories' => intval($analysisData['nutrition']['calories'] ?? 0),
+        'protein' => floatval($analysisData['nutrition']['protein'] ?? 0),
+        'carbs' => floatval($analysisData['nutrition']['carbs'] ?? 0),
+        'fat' => floatval($analysisData['nutrition']['fat'] ?? 0),
         'ingredients' => $ingredients,
-        'confidence_score' => $analysisData['confidence_score'] ?? 0
+        'confidence_score' => intval($analysisData['confidence_score'] ?? 0)
     ]);
 
     $analysisId = $db->lastInsertId();
@@ -192,7 +182,15 @@ try {
     ]);
 
 } catch (Exception $e) {
-    error_log('Error: ' . $e->getMessage());
+    // Hatayı session'a kaydet
+    $_SESSION['api_errors'][] = [
+        'time' => date('Y-m-d H:i:s'),
+        'message' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ];
+
     http_response_code(500);
     echo json_encode([
         'success' => false,
