@@ -61,7 +61,8 @@ try {
 
     // API isteği için data
     $data = [
-        "model" => "openai/gpt-4-vision-preview",
+        "model" => "gpt-4o-mini",
+        "max_tokens" => 1000,
         "messages" => [
             [
                 "role" => "system",
@@ -76,9 +77,7 @@ try {
                     ],
                     [
                         "type" => "image_url",
-                        "image_url" => [
-                            "url" => $imageUrl
-                        ]
+                        "image_url" => $imageUrl
                     ]
                 ]
             ]
@@ -94,7 +93,8 @@ try {
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
             'Authorization: Bearer ' . $OPENROUTER_API_KEY,
-            'HTTP-Referer: http://localhost:8080'  // Referer eklendi
+            'HTTP-Referer: https://foodlens.com',
+            'X-Title: FoodLens AI'
         ]
     ]);
 
@@ -104,17 +104,26 @@ try {
         throw new Exception('cURL Error: ' . curl_error($ch));
     }
     
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($httpCode !== 200) {
+        throw new Exception('API HTTP Error: ' . $httpCode . ' Response: ' . $response);
+    }
+
     curl_close($ch);
 
-    // API yanıtını parse et
+    // API yanıtını parse et ve debug için kaydet
     $result = json_decode($response, true);
-
-    // Debug için yanıtı session'a kaydedelim
     $_SESSION['api_debug'] = [
+        'request_data' => $data,
         'raw_response' => $response,
         'parsed_response' => $result,
-        'curl_info' => curl_getinfo($ch)
+        'http_code' => $httpCode
     ];
+
+    // Hata kontrolü
+    if (isset($result['error'])) {
+        throw new Exception('API Error: ' . json_encode($result['error']));
+    }
 
     // Sonra kontrol yapalım
     if (!isset($result['choices'][0]['message']['content'])) {
