@@ -1,9 +1,9 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "kalori_db";
-    private $username = "root";
-    private $password = "";
+    private $db_name = "foodlens";
+    private $username = "foodlens";
+    private $password = "415263000As!";
     public $conn;
 
     public function getConnection() {
