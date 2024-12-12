@@ -40,6 +40,20 @@ session_start();
         <p>Henüz hata logu yok.</p>
     <?php endif; ?>
 
+    <h1>API Debug Bilgisi</h1>
+    <?php if (isset($_SESSION['api_debug'])): ?>
+        <div class="debug">
+            <h3>Raw Response:</h3>
+            <pre><?php print_r($_SESSION['api_debug']['raw_response']); ?></pre>
+            
+            <h3>Parsed Response:</h3>
+            <pre><?php print_r($_SESSION['api_debug']['parsed_response']); ?></pre>
+            
+            <h3>cURL Info:</h3>
+            <pre><?php print_r($_SESSION['api_debug']['curl_info']); ?></pre>
+        </div>
+    <?php endif; ?>
+
     <?php
     // Logları temizleme
     if (isset($_POST['clear_logs'])) {

@@ -108,9 +108,17 @@ try {
 
     // API yanıtını parse et
     $result = json_decode($response, true);
-    
+
+    // Debug için yanıtı session'a kaydedelim
+    $_SESSION['api_debug'] = [
+        'raw_response' => $response,
+        'parsed_response' => $result,
+        'curl_info' => curl_getinfo($ch)
+    ];
+
+    // Sonra kontrol yapalım
     if (!isset($result['choices'][0]['message']['content'])) {
-        throw new Exception('API yanıtı beklenen formatta değil');
+        throw new Exception('API yanıtı beklenen formatta değil. API Yanıtı: ' . json_encode($result));
     }
 
     // AI'dan gelen yanıtı al ve JSON'a çevir
