@@ -3,8 +3,8 @@ class Auth {
     private $conn;
     private $table_name = "users";
 
-    public function __construct($conn) {
-        $this->conn = $conn;
+    public function __construct($db) {
+        $this->conn = $db;
     }
 
     public function register($data) {
@@ -125,17 +125,19 @@ class Auth {
     }
 
     public function checkAuth() {
-        if(isset($_COOKIE['user_id']) && isset($_COOKIE['token'])) {
-            $userId = $_COOKIE['user_id'];
-            $token = $_COOKIE['token'];
-            
-            $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? AND token = ?";
-            $stmt = $this->conn->prepare($query);
-            $stmt->execute([$userId, $token]);
-            
-            return $stmt->rowCount() > 0;
+        if(!isset($_COOKIE['user_id']) || !isset($_COOKIE['auth_token'])) {
+            return false;
         }
-        return false;
+
+        $query = "SELECT * FROM " . $this->table_name . " 
+                WHERE id = :user_id AND auth_token = :token";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":user_id", $_COOKIE['user_id']);
+        $stmt->bindParam(":token", $_COOKIE['auth_token']);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
     }
 
     public function logout() {
@@ -160,12 +162,5 @@ class Auth {
             'success' => true,
             'message' => 'Çıkış yapıldı'
         ];
-    }
-
-    public function getUserId() {
-        if(isset($_COOKIE['user_id'])) {
-            return $_COOKIE['user_id'];
-        }
-        return null;
     }
 }
