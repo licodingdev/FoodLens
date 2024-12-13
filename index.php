@@ -947,5 +947,106 @@ if(!$auth->checkAuth()) {
         }
     }
     </script>
+
+    <script>
+    document.getElementById('cameraBtn').addEventListener('click', async () => {
+        try {
+            // Kamera stream'ini al
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment' // Arka kamerayı kullan
+                } 
+            });
+
+            // Video preview için modal oluştur
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-50 bg-black flex flex-col';
+            modal.innerHTML = `
+                <video autoplay playsinline class="flex-1 object-cover"></video>
+                <div class="safe-area-bottom bg-black/80 backdrop-blur-lg p-4 flex items-center justify-between">
+                    <button id="cancelCapture" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                        <i class="fas fa-times text-white"></i>
+                    </button>
+                    <button id="captureBtn" class="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center">
+                        <div class="w-12 h-12 rounded-full bg-white"></div>
+                    </button>
+                    <button id="switchCamera" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                        <i class="fas fa-camera-rotate text-white"></i>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Video elementi
+            const video = modal.querySelector('video');
+            video.srcObject = stream;
+
+            // Fotoğraf çekme
+            const captureBtn = modal.querySelector('#captureBtn');
+            captureBtn.addEventListener('click', () => {
+                // Canvas oluştur
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+
+                // Base64'e çevir
+                const imageData = canvas.toDataURL('image/jpeg');
+
+                // Preview'ı güncelle
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.classList.remove('hidden');
+                imagePreview.querySelector('img').src = imageData;
+                document.querySelector('#uploadArea').classList.add('hidden');
+
+                // File input'u güncelle
+                fetch(imageData)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const file = new File([blob], "camera_photo.jpg", { type: "image/jpeg" });
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        document.getElementById('fileInput').files = dataTransfer.files;
+                    });
+
+                // Stream'i kapat ve modal'ı kaldır
+                stream.getTracks().forEach(track => track.stop());
+                modal.remove();
+            });
+
+            // İptal butonu
+            const cancelBtn = modal.querySelector('#cancelCapture');
+            cancelBtn.addEventListener('click', () => {
+                stream.getTracks().forEach(track => track.stop());
+                modal.remove();
+            });
+
+            // Kamera değiştirme butonu
+            const switchBtn = modal.querySelector('#switchCamera');
+            switchBtn.addEventListener('click', async () => {
+                const currentFacingMode = stream.getVideoTracks()[0].getSettings().facingMode;
+                stream.getTracks().forEach(track => track.stop());
+
+                try {
+                    const newStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: currentFacingMode === 'environment' ? 'user' : 'environment'
+                        }
+                    });
+                    video.srcObject = newStream;
+                    stream = newStream;
+                } catch (err) {
+                    console.error('Kamera değiştirme hatası:', err);
+                }
+            });
+
+        } catch (err) {
+            console.error('Kamera erişim hatası:', err);
+            alert('Kameraya erişilemedi. Lütfen kamera izinlerini kontrol edin.');
+        }
+    });
+    </script>
 </body>
 </html>
