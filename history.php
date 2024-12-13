@@ -294,7 +294,7 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </div>
                 <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500 rounded-full" style="width: ${ingredient.percentage}%"></div>
+                    <div class="h-full bg-amber-500 rounded-full" style="width: ${ingredient.percentage}%"></div>
                 </div>
             `;
             list.appendChild(item);
