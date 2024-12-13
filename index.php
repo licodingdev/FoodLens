@@ -432,7 +432,7 @@ if(!$auth->checkAuth()) {
                             </h3>
                             <div class="flex items-center justify-center gap-2">
                                 <span class="w-1 h-1 bg-blue-500 rounded-full animate-ping"></span>
-                                <span class="text-[13px] text-gray-500 font-light">Görseliniz işleniyor...</span>
+                                <span class="text-[13px] text-gray-500 font-light" id="loadingStatus">Görsel analiz ediliyor...</span>
                             </div>
                         </div>
 
@@ -450,7 +450,7 @@ if(!$auth->checkAuth()) {
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-between text-[11px] font-light">
-                                        <span class="text-gray-400" id="loadingStatus">Görsel analiz ediliyor...</span>
+                                        <span class="text-gray-400">Görsel analiz ediliyor...</span>
                                         <span class="text-gray-900 font-medium" id="progressText">0%</span>
                                     </div>
                                 </div>
@@ -779,47 +779,68 @@ if(!$auth->checkAuth()) {
                     return;
                 }
 
-                // Form data oluştur
                 const formData = new FormData();
                 formData.append('image', fileInput.files[0]);
 
-                // UI'ı güncelle
                 uploadSection.classList.add('hidden');
                 loadingSection.classList.remove('hidden');
 
-                try {
-                    console.log('API isteği gönderiliyor...'); // Debug log 1
+                // Progress bar ve süre için değişkenler
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                const loadingStatus = document.getElementById('loadingStatus');
+                let startTime = Date.now();
+                let progress = 0;
+                let seconds = 0;
 
-                    // API isteği
+                // Progress bar animasyonu
+                const progressInterval = setInterval(() => {
+                    if (progress < 100) {
+                        progress += (100 / (8 * 10)); // 8 saniyede 100'e ulaşacak şekilde
+                        progressBar.style.width = `${Math.min(progress, 100)}%`;
+                        progressText.textContent = `${Math.min(Math.round(progress), 100)}%`;
+                    }
+                }, 100); // Her 100ms'de bir güncelle
+
+                // Süre sayacı
+                const timeInterval = setInterval(() => {
+                    seconds = Math.floor((Date.now() - startTime) / 1000);
+                    loadingStatus.textContent = `Görsel analiz ediliyor... (${seconds}.${(Date.now() - startTime) % 1000}sn)`;
+                }, 100);
+
+                try {
                     const response = await fetch('api.php', {
                         method: 'POST',
                         body: formData
                     });
 
                     const result = await response.json();
-                    console.log('API Yanıtı:', result); // Debug log 2
+
+                    // İnterval'leri temizle
+                    clearInterval(progressInterval);
+                    clearInterval(timeInterval);
+
+                    // Progress bar'ı tamamla
+                    progressBar.style.width = '100%';
+                    progressText.textContent = '100%';
 
                     if (!result.success) {
                         throw new Error(result.error);
                     }
-
-                    console.log('Data:', result.data); // Debug log 3
                     
-                    // Sonuçları güncelle
                     if (result.data) {
-                        console.log('updateResults çağrılıyor...'); // Debug log 4
                         updateResults(result.data);
-                        
-                        // Loading'i gizle, sonucu göster
                         loadingSection.classList.add('hidden');
                         resultSection.classList.remove('hidden');
-                        console.log('Sonuç gösterildi'); // Debug log 5
                     } else {
                         throw new Error('API yanıtında data yok');
                     }
 
                 } catch (error) {
-                    console.error('Hata:', error); // Debug log 6
+                    // İnterval'leri temizle
+                    clearInterval(progressInterval);
+                    clearInterval(timeInterval);
+                    
                     alert('Bir hata oluştu: ' + error.message);
                     loadingSection.classList.add('hidden');
                     uploadSection.classList.remove('hidden');
@@ -862,16 +883,12 @@ if(!$auth->checkAuth()) {
 
     <script>
     function updateResults(data) {
-        console.log('updateResults başladı:', data); // Debug log 7
-
         try {
             // Temel bilgileri güncelle
             const foodNameEl = document.querySelector('[data-result="food_name"]');
-            console.log('foodNameEl:', foodNameEl); // Debug log 8
             if (foodNameEl) foodNameEl.textContent = data.food_name;
 
             const portionEl = document.querySelector('[data-result="portion"]');
-            console.log('portionEl:', portionEl); // Debug log 9
             if (portionEl) portionEl.textContent = `${data.portion.count} porsiyon (${data.portion.amount})`;
 
             const plateFullnessEl = document.querySelector('[data-result="plate_fullness"]');
@@ -895,15 +912,11 @@ if(!$auth->checkAuth()) {
 
             // Malzeme detaylarını güncelle
             const ingredientsContainer = document.getElementById('ingredientsDetail');
-            console.log('ingredientsContainer:', ingredientsContainer); // Debug log 10
 
             if (ingredientsContainer) {
-                ingredientsContainer.innerHTML = ''; // Mevcut malzemeleri temizle
+                ingredientsContainer.innerHTML = '';
 
-                // Her malzeme için yeni element oluştur
-                data.ingredients.forEach((ingredient, index) => {
-                    console.log(`Malzeme ${index}:`, ingredient); // Debug log 11
-
+                data.ingredients.forEach(ingredient => {
                     const item = document.createElement('div');
                     item.className = 'space-y-1 mb-3';
                     
@@ -926,11 +939,10 @@ if(!$auth->checkAuth()) {
             const resultSection = document.getElementById('resultSection');
             if (resultSection) {
                 resultSection.classList.remove('hidden');
-                console.log('Sonuç bölümü gösterildi'); // Debug log 12
             }
 
         } catch (err) {
-            console.error('updateResults hatası:', err); // Debug log 13
+            throw new Error('Sonuçlar güncellenirken bir hata oluştu');
         }
     }
     </script>
