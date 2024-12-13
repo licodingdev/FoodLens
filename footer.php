@@ -9,7 +9,7 @@
                 </a>
 
                 <!-- Geçmiş -->
-                <a href="#" class="relative group flex flex-col items-center">
+                <a href="history.php" class="relative group flex flex-col items-center">
                     <div class="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100/80 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600 transition-all duration-200">
                         <i class="fas fa-history text-xs"></i>
                     </div>
