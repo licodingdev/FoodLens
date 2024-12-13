@@ -73,17 +73,17 @@ $items = $dataset[$categoryName];
                             </div>
                             <div>
                                 <div class="text-[15px] font-medium text-gray-900">
-                                    <?= htmlspecialchars($item['Yiyecek']) ?>
+                                    <?= htmlspecialchars($item['food']) ?>
                                 </div>
                                 <div class="text-xs text-gray-500 mt-0.5 flex items-center">
                                     <i class="fas fa-scale-balanced text-[10px] mr-1.5 text-gray-400"></i>
-                                    <?= htmlspecialchars($item['Porsiyon']) ?>
+                                    <?= htmlspecialchars($item['portion']) ?>
                                 </div>
                             </div>
                         </div>
                         <div class="flex flex-col items-end">
                             <div class="text-[15px] font-medium text-gray-900">
-                                <?= htmlspecialchars($item['Kalori']) ?>
+                                <?= htmlspecialchars($item['calories']) ?>
                             </div>
                             <div class="text-[10px] text-gray-400 mt-0.5 flex items-center">
                                 <i class="fas fa-fire-flame-simple text-amber-500 mr-1"></i>
