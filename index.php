@@ -1063,16 +1063,18 @@ if(!$auth->checkAuth()) {
             gravity: "top",
             position: "center",
             stopOnFocus: true,
-            className: "rounded-xl",
+            className: "rounded-lg",
             style: {
                 background: isError 
                     ? "linear-gradient(to right, #ef4444, #dc2626)" 
                     : "linear-gradient(to right, #10b981, #059669)",
                 boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                borderRadius: "16px",
+                borderRadius: "12px",
                 padding: "12px 24px",
                 fontSize: "14px",
-                fontFamily: "Ubuntu, sans-serif"
+                fontFamily: "Ubuntu, sans-serif",
+                margin: "0 16px",
+                maxWidth: "calc(100% - 32px)"
             }
         }).showToast();
     }
