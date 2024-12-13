@@ -107,5 +107,39 @@ $items = $dataset[$categoryName];
             <div class="safe-area-bottom"></div>
         </nav>
     </div>
+    <script>
+        // Arama fonksiyonu
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            document.querySelectorAll('.food-item').forEach(item => {
+                const foodName = item.querySelector('.text-gray-900').textContent.toLowerCase();
+                const portion = item.querySelector('.text-gray-500').textContent.toLowerCase();
+                
+                // Hem yiyecek adında hem de porsiyon bilgisinde arama yap
+                if (foodName.includes(searchTerm) || portion.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hiç sonuç yoksa "Sonuç bulunamadı" mesajını göster
+            const visibleItems = document.querySelectorAll('.food-item[style="display: none;"]');
+            const noResultsMessage = document.getElementById('noResults');
+            
+            if (visibleItems.length === document.querySelectorAll('.food-item').length) {
+                if (!noResultsMessage) {
+                    const message = document.createElement('div');
+                    message.id = 'noResults';
+                    message.className = 'text-center py-8 text-gray-500 text-sm';
+                    message.textContent = 'Sonuç bulunamadı';
+                    document.querySelector('.divide-y').appendChild(message);
+                }
+            } else if (noResultsMessage) {
+                noResultsMessage.remove();
+            }
+        });
+    </script>
 </body>
 </html> 
