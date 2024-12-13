@@ -152,6 +152,31 @@ $user = $userQuery->fetch(PDO::FETCH_ASSOC);
     <?php endif; ?>
 
     <script>
+    // Toast fonksiyonunu ekleyelim
+    function showToast(message, isError = false) {
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            className: "rounded-lg",
+            style: {
+                background: isError 
+                    ? "linear-gradient(to right, #ef4444, #dc2626)" 
+                    : "linear-gradient(to right, #10b981, #059669)",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                borderRadius: "12px",
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontFamily: "Ubuntu, sans-serif",
+                margin: "0 16px",
+                maxWidth: "calc(100% - 32px)"
+            }
+        }).showToast();
+    }
+
+    // Form submit eventi
     document.getElementById('profileForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -159,7 +184,7 @@ $user = $userQuery->fetch(PDO::FETCH_ASSOC);
         const formData = new FormData(form);
         
         try {
-            const response = await fetch('/ajax/update_profile.php', {
+            const response = await fetch('update_profile.php', {
                 method: 'POST',
                 body: formData
             });
