@@ -49,6 +49,30 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
             font-family: 'Ubuntu', sans-serif;
             background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
         }
+        
+        /* Modal Animation */
+        #analysisModal {
+            transition: opacity 0.2s ease-in-out;
+        }
+        
+        #analysisModal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #analysisModal:not(.hidden) {
+            opacity: 1;
+        }
+        
+        /* Modal Content Animation */
+        #analysisModal > div:last-child {
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #analysisModal:not(.hidden) > div:last-child {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -137,7 +161,8 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 <?php else: ?>
                     <?php foreach ($analyses as $analysis): ?>
-                        <div class="bg-white rounded-2xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-200">
+                        <div class="bg-white rounded-2xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-200 cursor-pointer"
+                             onclick="showAnalysisDetails(<?= htmlspecialchars(json_encode($analysis)) ?>)">
                             <div class="flex items-start space-x-4">
                                 <!-- Image Preview -->
                                 <div class="w-20 h-20 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden">
@@ -197,5 +222,95 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
         <!-- Footer Navigation -->
         <?php include 'footer.php'; ?>
     </div>
+
+    <!-- Modal -->
+    <div id="analysisModal" class="fixed inset-0 z-50 hidden">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-w-md mx-auto">
+            <div class="relative">
+                <!-- Close Button -->
+                <button onclick="closeModal()" class="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Modal Header -->
+                <div class="p-6">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-pie text-blue-500"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900">İçerik Detayları</h3>
+                            <p class="text-sm text-gray-500">Yemeğin içindeki malzemeler</p>
+                        </div>
+                    </div>
+
+                    <!-- Ingredients List -->
+                    <div id="ingredientsList" class="space-y-4">
+                        <!-- JavaScript ile doldurulacak -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+    function showAnalysisDetails(analysis) {
+        // Modal'ı göster
+        document.getElementById('analysisModal').classList.remove('hidden');
+        
+        // İçerik detaylarını parse et
+        let ingredients = [];
+        try {
+            ingredients = JSON.parse(analysis.ingredients_detail || '[]');
+        } catch (e) {
+            console.error('JSON parse error:', e);
+        }
+
+        // İçerik listesini oluştur
+        const list = document.getElementById('ingredientsList');
+        list.innerHTML = '';
+
+        ingredients.forEach(ingredient => {
+            const item = document.createElement('div');
+            item.className = 'mb-4';
+            item.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <i class="fas fa-utensils text-gray-400 text-xs"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${ingredient.name}</div>
+                            <div class="text-xs text-gray-500">${ingredient.amount}</div>
+                        </div>
+                    </div>
+                    <div class="text-sm font-medium text-gray-900">
+                        ${ingredient.percentage}%
+                    </div>
+                </div>
+                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full" style="width: ${ingredient.percentage}%"></div>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+    }
+
+    function closeModal() {
+        document.getElementById('analysisModal').classList.add('hidden');
+    }
+
+    // ESC tuşu ile modal'ı kapatma
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    });
+    </script>
 </body>
 </html> 
