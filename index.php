@@ -243,7 +243,7 @@ if(!$auth->checkAuth()) {
                             <div class="flex items-center space-x-1.5 mt-0.5">
                                 <div class="flex items-center space-x-1">
                                     <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-                                    <span class="text-blue-100 text-xs">Online</span>
+                                    <span class="text-blue-100 text-xs">Operasyonel</span>
                                 </div>
                                 <span class="text-blue-200/30">•</span>
                                 <span class="text-blue-100 text-xs">v2.0</span>
