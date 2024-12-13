@@ -141,7 +141,7 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
                             <div class="flex items-start space-x-4">
                                 <!-- Image Preview -->
                                 <div class="w-20 h-20 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden">
-                                    <img src="<?= $analysis['image_path'] ? 'uploads/' . $analysis['image_path'] : 'assets/images/placeholder-food.png' ?>" 
+                                    <img src="<?= $analysis['image_path'] ? '/' . $analysis['image_path'] : 'assets/images/placeholder-food.png' ?>" 
                                          alt="Food Analysis" 
                                          class="w-full h-full object-cover">
                                 </div>
