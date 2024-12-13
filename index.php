@@ -33,6 +33,10 @@ if(!$auth->checkAuth()) {
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <style>
         /* Base Styles */
         body {
@@ -815,11 +819,12 @@ if(!$auth->checkAuth()) {
                     }
                     
                     if (result.data) {
+                        showToast('Analiz başarıyla tamamlandı!');
                         updateResults(result.data);
                         loadingSection.classList.add('hidden');
                         resultSection.classList.remove('hidden');
                     } else {
-                        throw new Error('API yanıtında data yok');
+                        throw new Error('Görseliniz net olduğundan ve yiyecek veya içecek içerdiğinden emin olun.');
                     }
 
                 } catch (error) {
@@ -827,7 +832,7 @@ if(!$auth->checkAuth()) {
                     clearInterval(progressInterval);
                     clearInterval(timeInterval);
                     
-                    alert('Bir hata oluştu: ' + error.message);
+                    showToast(error.message, true);
                     loadingSection.classList.add('hidden');
                     uploadSection.classList.remove('hidden');
                 }
@@ -1044,9 +1049,33 @@ if(!$auth->checkAuth()) {
 
         } catch (err) {
             console.error('Kamera erişim hatası:', err);
-            alert('Kameraya erişilemedi. Lütfen kamera izinlerini kontrol edin.');
+            showToast('Kameraya erişilemedi. Lütfen kamera izinlerini kontrol edin.', true);
         }
     });
+    </script>
+
+    <!-- Toast fonksiyonunu ekleyelim -->
+    <script>
+    function showToast(message, isError = false) {
+        Toastify({
+            text: message,
+            duration: 3000,
+            gravity: "top",
+            position: "center",
+            stopOnFocus: true,
+            className: "rounded-xl",
+            style: {
+                background: isError 
+                    ? "linear-gradient(to right, #ef4444, #dc2626)" 
+                    : "linear-gradient(to right, #10b981, #059669)",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                borderRadius: "16px",
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontFamily: "Ubuntu, sans-serif"
+            }
+        }).showToast();
+    }
     </script>
 </body>
 </html>
