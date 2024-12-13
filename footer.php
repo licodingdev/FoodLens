@@ -24,7 +24,7 @@
                     <span class="text-[9px] font-medium mt-0.5 text-amber-700">Premium</span>
                 </a>
 
-                <!-- ��statistik -->
+                <!-- İstatistik -->
                 <a href="#" class="relative group flex flex-col items-center">
                     <div class="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100/80 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600 transition-all duration-200">
                         <i class="fas fa-chart-simple text-xs"></i>
@@ -33,11 +33,11 @@
                 </a>
 
                 <!-- Profil -->
-                <a href="#" class="relative group flex flex-col items-center">
+                <a href="calories.php" class="relative group flex flex-col items-center">
                     <div class="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100/80 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600 transition-all duration-200">
-                        <i class="fas fa-user text-xs"></i>
+                        <i class="fas fa-book-open text-xs"></i>
                     </div>
-                    <span class="text-[9px] font-medium mt-0.5 text-gray-400">Profil</span>
+                    <span class="text-[9px] font-medium mt-0.5 text-gray-400">Kalori Cetveli</span>
                 </a>
             </div>
             <div class="safe-area-bottom"></div>

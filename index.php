@@ -343,8 +343,8 @@ if(!$auth->checkAuth()) {
 
                     <!-- Sağ taraf - Yeni Analiz butonu -->
                     <button class="bg-white/10 border border-white/20 backdrop-blur-sm py-2 px-4 rounded-xl flex items-center space-x-2 hover:bg-white/20 transition-all duration-200 group">
-                        <i class="fas fa-plus text-white/80 text-xs group-hover:rotate-90 transition-transform duration-200"></i>
-                        <span class="text-white text-sm">Yeni Analiz</span>
+                        <i class="fas fa-cog text-white/80 text-xs group-hover:rotate-90 transition-transform duration-200"></i>
+                        <span class="text-white text-sm">Ayarlar</span>
                     </button>
                 </div>
             </div>
