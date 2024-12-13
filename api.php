@@ -230,6 +230,39 @@ Yanıtını SADECE aşağıdaki JSON formatında ver, ekstra açıklama ekleme:
         'data' => $aiResponse
     ]);
 
+    // Stats bilgilerini al
+    $stats = [
+        'total_analysis' => 0,
+        'daily_calories' => 0,
+        'active_days' => 0
+    ];
+
+    try {
+        // Toplam analiz sayısı
+        $query = "SELECT COUNT(*) as total FROM food_analyses";
+        $result = $db->query($query);
+        $stats['total_analysis'] = $result->fetch(PDO::FETCH_ASSOC)['total'];
+
+        // Günlük toplam kalori (bugünün)
+        $query = "SELECT SUM(nutrition->>'$.calories') as total_calories 
+                  FROM food_analyses 
+                  WHERE DATE(created_at) = CURDATE()";
+        $result = $db->query($query);
+        $stats['daily_calories'] = round($result->fetch(PDO::FETCH_ASSOC)['total_calories'] ?? 0);
+
+        // Aktif gün sayısı (unique günler)
+        $query = "SELECT COUNT(DISTINCT DATE(created_at)) as active_days 
+                  FROM food_analyses";
+        $result = $db->query($query);
+        $stats['active_days'] = $result->fetch(PDO::FETCH_ASSOC)['active_days'];
+
+    } catch (PDOException $e) {
+        // Hata durumunda varsayılan değerleri kullan
+    }
+
+    // API yanıtına stats bilgisini ekle
+    $response['stats'] = $stats;
+
 } catch (Exception $e) {
     // Hatayı session'a kaydet
     $_SESSION['api_errors'][] = [

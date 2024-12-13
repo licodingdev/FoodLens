@@ -269,21 +269,21 @@ if(!$auth->checkAuth()) {
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/20 hover:bg-white/20 transition-colors duration-200">
                         <div class="text-blue-100/60 text-xs mb-1">Toplam Analiz</div>
                         <div class="text-white font-semibold flex items-baseline space-x-1">
-                            <span class="text-xl">2,845</span>
+                            <span class="text-xl" data-stat="total_analysis">0</span>
                             <span class="text-blue-100/50 text-xs">adet</span>
                         </div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/20 hover:bg-white/20 transition-colors duration-200">
                         <div class="text-blue-100/60 text-xs mb-1">Günlük Kalori</div>
                         <div class="text-white font-semibold flex items-baseline space-x-1">
-                            <span class="text-xl">1,250</span>
+                            <span class="text-xl" data-stat="daily_calories">0</span>
                             <span class="text-blue-100/50 text-xs">kcal</span>
                         </div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/20 hover:bg-white/20 transition-colors duration-200">
                         <div class="text-blue-100/60 text-xs mb-1">Aktif Gün</div>
                         <div class="text-white font-semibold flex items-baseline space-x-1">
-                            <span class="text-xl">14</span>
+                            <span class="text-xl" data-stat="active_days">0</span>
                             <span class="text-blue-100/50 text-xs">gün</span>
                         </div>
                     </div>
@@ -537,7 +537,7 @@ if(!$auth->checkAuth()) {
                                         </div>
                                         <span class="text-[11px] text-gray-400">Kalori</span>
                                     </div>
-                                    <div class="text-[15px] text-gray-600" data-nutrient="calories">324 kcal</div>
+                                    <div class="text-[15px] text-gray-600" data-nutrient="calories">324 kcal/porsiyon</div>
                                 </div>
                             </div>
 
@@ -650,7 +650,7 @@ if(!$auth->checkAuth()) {
                     <span class="text-[9px] font-medium mt-0.5 text-amber-700">Premium</span>
                 </a>
 
-                <!-- İstatistik -->
+                <!-- ��statistik -->
                 <a href="#" class="relative group flex flex-col items-center">
                     <div class="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100/80 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600 transition-all duration-200">
                         <i class="fas fa-chart-simple text-xs"></i>
@@ -727,7 +727,7 @@ if(!$auth->checkAuth()) {
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center justify-between mb-1">
-                                <h3 class="text-white/80 text-sm font-medium">Ho�� Geldin!</h3>
+                                <h3 class="text-white/80 text-sm font-medium">Hoş Geldin!</h3>
                                 <span class="text-white/40 text-[10px]">1 hafta önce</span>
                             </div>
                             <p class="text-white/60 text-xs">FoodLens AI'ya hoş geldin! Hemen ilk analizini yapmaya başla.</p>
@@ -785,7 +785,7 @@ if(!$auth->checkAuth()) {
                 uploadSection.classList.add('hidden');
                 loadingSection.classList.remove('hidden');
 
-                // Progress bar ve süre için değişkenler
+                // Progress bar ve s��re için değişkenler
                 const progressBar = document.getElementById('progressBar');
                 const progressText = document.getElementById('progressText');
                 const analysisTime = document.getElementById('analysisTime');
@@ -902,7 +902,7 @@ if(!$auth->checkAuth()) {
 
             // Besin değerlerini güncelle
             const caloriesEl = document.querySelector('[data-nutrient="calories"]');
-            if (caloriesEl) caloriesEl.textContent = `${data.nutrition.calories} kcal`;
+            if (caloriesEl) caloriesEl.textContent = `${data.nutrition.calories} kcal/porsiyon`;
 
             const proteinEl = document.querySelector('[data-nutrient="protein"]');
             if (proteinEl) proteinEl.textContent = `${data.nutrition.protein}g`;
@@ -938,10 +938,25 @@ if(!$auth->checkAuth()) {
                 });
             }
 
-            // Sonuç bölümünü göster
+            // Sonuç bölümünü g��ster
             const resultSection = document.getElementById('resultSection');
             if (resultSection) {
                 resultSection.classList.remove('hidden');
+            }
+
+            // Header stats'ı güncelle
+            if (data.stats) {
+                // Toplam analiz
+                document.querySelector('[data-stat="total_analysis"]').textContent = 
+                    new Intl.NumberFormat('tr-TR').format(data.stats.total_analysis);
+                
+                // Günlük kalori
+                document.querySelector('[data-stat="daily_calories"]').textContent = 
+                    new Intl.NumberFormat('tr-TR').format(data.stats.daily_calories);
+                    
+                // Aktif gün
+                document.querySelector('[data-stat="active_days"]').textContent = 
+                    data.stats.active_days;
             }
 
         } catch (err) {
