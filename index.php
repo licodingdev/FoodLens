@@ -594,17 +594,8 @@ if(!$auth->checkAuth()) {
                                 </div>
 
                                 <!-- Ingredients List -->
-                                <div class="space-y-3" id="ingredientsDetail">
-                                    <!-- Her malzeme için template -->
-                                    <div class="ingredient-item hidden">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <span class="text-[13px] text-gray-700 ingredient-name">Malzeme Adı</span>
-                                            <span class="text-[11px] text-gray-500 ingredient-amount">100gr</span>
-                                        </div>
-                                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                            <div class="ingredient-percentage h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full"></div>
-                                        </div>
-                                    </div>
+                                <div id="ingredientsDetail" class="space-y-3">
+                                    <!-- JavaScript ile doldurulacak -->
                                 </div>
                             </div>
                         </div>
@@ -792,13 +783,13 @@ if(!$auth->checkAuth()) {
                 const formData = new FormData();
                 formData.append('image', fileInput.files[0]);
 
-                console.log('Selected file:', fileInput.files[0]); // Debug için dosyayı kontrol et
-
                 // UI'ı güncelle
                 uploadSection.classList.add('hidden');
                 loadingSection.classList.remove('hidden');
 
                 try {
+                    console.log('API isteği gönderiliyor...'); // Debug log 1
+
                     // API isteği
                     const response = await fetch('api.php', {
                         method: 'POST',
@@ -806,54 +797,29 @@ if(!$auth->checkAuth()) {
                     });
 
                     const result = await response.json();
-                    console.log('Full API Response:', result); // Tüm yanıtı görelim
+                    console.log('API Yanıtı:', result); // Debug log 2
 
                     if (!result.success) {
                         throw new Error(result.error);
                     }
 
-                    // Debug bilgisi
-                    if (result.debug) {
-                        console.log('Original Response:', result.debug.original_response);
-                        console.log('AI Content:', result.debug.ai_content);
-                        console.log('Parsed Response:', result.debug.parsed_response);
-                    }
-
-                    // Null kontrolü ekleyelim
-                    if (!result.data) {
-                        throw new Error('API yanıtı boş');
-                    }
-
-                    // Sonuçları UI'a yerleştir
-                    const foodNameEl = document.querySelector('#resultSection h2');
-                    const portionEl = document.querySelector('#resultSection p');
+                    console.log('Data:', result.data); // Debug log 3
                     
-                    if (foodNameEl) foodNameEl.textContent = result.data.food_name;
-                    if (portionEl) portionEl.textContent = 
-                        `${result.data.portion?.count || 1} porsiyon (${result.data.portion?.amount || '300ml'})`;
-
-                    // Besin değerlerini güncelle - Null kontrolü ile
-                    const nutrients = {
-                        'calories': 'kcal',
-                        'protein': 'g',
-                        'carbs': 'g',
-                        'fat': 'g'
-                    };
-
-                    Object.entries(nutrients).forEach(([key, unit]) => {
-                        const el = document.querySelector(`[data-nutrient="${key}"]`);
-                        if (el) {
-                            const value = result.data.nutrition?.[key] || '0';
-                            el.textContent = `${value}${unit}`;
-                        }
-                    });
-
-                    // Loading'i gizle, sonucu göster
-                    loadingSection.classList.add('hidden');
-                    resultSection.classList.remove('hidden');
+                    // Sonuçları güncelle
+                    if (result.data) {
+                        console.log('updateResults çağrılıyor...'); // Debug log 4
+                        updateResults(result.data);
+                        
+                        // Loading'i gizle, sonucu göster
+                        loadingSection.classList.add('hidden');
+                        resultSection.classList.remove('hidden');
+                        console.log('Sonuç gösterildi'); // Debug log 5
+                    } else {
+                        throw new Error('API yanıtında data yok');
+                    }
 
                 } catch (error) {
-                    console.error('Error details:', error); // Hata detaylarını göster
+                    console.error('Hata:', error); // Debug log 6
                     alert('Bir hata oluştu: ' + error.message);
                     loadingSection.classList.add('hidden');
                     uploadSection.classList.remove('hidden');
@@ -896,45 +862,76 @@ if(!$auth->checkAuth()) {
 
     <script>
     function updateResults(data) {
-        // Temel bilgileri güncelle
-        document.querySelector('[data-result="food_name"]').textContent = data.food_name;
-        document.querySelector('[data-result="portion"]').textContent = 
-            `${data.portion.count} porsiyon (${data.portion.amount})`;
-        document.querySelector('[data-result="plate_fullness"]').textContent = 
-            data.portion.plate_fullness;
-        document.querySelector('[data-result="cooking_method"]').textContent = 
-            data.cooking_method;
+        console.log('updateResults başladı:', data); // Debug log 7
 
-        // Besin değerlerini güncelle
-        // ... existing nutrition updates ...
+        try {
+            // Temel bilgileri güncelle
+            const foodNameEl = document.querySelector('[data-result="food_name"]');
+            console.log('foodNameEl:', foodNameEl); // Debug log 8
+            if (foodNameEl) foodNameEl.textContent = data.food_name;
 
-        // Malzeme detaylarını güncelle
-        const ingredientsContainer = document.getElementById('ingredientsDetail');
-        ingredientsContainer.innerHTML = ''; // Mevcut malzemeleri temizle
+            const portionEl = document.querySelector('[data-result="portion"]');
+            console.log('portionEl:', portionEl); // Debug log 9
+            if (portionEl) portionEl.textContent = `${data.portion.count} porsiyon (${data.portion.amount})`;
 
-        // data.ingredients array'ini kullan
-        data.ingredients.forEach(ingredient => {
-            // Yeni bir malzeme öğesi oluştur
-            const item = document.createElement('div');
-            item.className = 'ingredient-item';
-            
-            // HTML yapısını oluştur
-            item.innerHTML = `
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-[13px] text-gray-700">${ingredient.name}</span>
-                    <span class="text-[11px] text-gray-500">${ingredient.amount}</span>
-                </div>
-                <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full" 
-                         style="width: ${ingredient.percentage}%"></div>
-                </div>
-            `;
-            
-            ingredientsContainer.appendChild(item);
-        });
+            const plateFullnessEl = document.querySelector('[data-result="plate_fullness"]');
+            if (plateFullnessEl) plateFullnessEl.textContent = data.portion.plate_fullness;
 
-        // Sonuç bölümünü göster
-        document.getElementById('resultSection').classList.remove('hidden');
+            const cookingMethodEl = document.querySelector('[data-result="cooking_method"]');
+            if (cookingMethodEl) cookingMethodEl.textContent = data.cooking_method;
+
+            // Besin değerlerini güncelle
+            const caloriesEl = document.querySelector('[data-nutrient="calories"]');
+            if (caloriesEl) caloriesEl.textContent = `${data.nutrition.calories} kcal`;
+
+            const proteinEl = document.querySelector('[data-nutrient="protein"]');
+            if (proteinEl) proteinEl.textContent = `${data.nutrition.protein}g`;
+
+            const carbsEl = document.querySelector('[data-nutrient="carbs"]');
+            if (carbsEl) carbsEl.textContent = `${data.nutrition.carbs}g`;
+
+            const fatEl = document.querySelector('[data-nutrient="fat"]');
+            if (fatEl) fatEl.textContent = `${data.nutrition.fat}g`;
+
+            // Malzeme detaylarını güncelle
+            const ingredientsContainer = document.getElementById('ingredientsDetail');
+            console.log('ingredientsContainer:', ingredientsContainer); // Debug log 10
+
+            if (ingredientsContainer) {
+                ingredientsContainer.innerHTML = ''; // Mevcut malzemeleri temizle
+
+                // Her malzeme için yeni element oluştur
+                data.ingredients.forEach((ingredient, index) => {
+                    console.log(`Malzeme ${index}:`, ingredient); // Debug log 11
+
+                    const item = document.createElement('div');
+                    item.className = 'space-y-1 mb-3';
+                    
+                    item.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="text-[13px] text-gray-700">${ingredient.name}</span>
+                            <span class="text-[11px] text-gray-500">${ingredient.amount}</span>
+                        </div>
+                        <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-amber-200 to-amber-300 rounded-full transition-all duration-500" 
+                                 style="width: ${ingredient.percentage}%"></div>
+                        </div>
+                    `;
+                    
+                    ingredientsContainer.appendChild(item);
+                });
+            }
+
+            // Sonuç bölümünü göster
+            const resultSection = document.getElementById('resultSection');
+            if (resultSection) {
+                resultSection.classList.remove('hidden');
+                console.log('Sonuç bölümü gösterildi'); // Debug log 12
+            }
+
+        } catch (err) {
+            console.error('updateResults hatası:', err); // Debug log 13
+        }
     }
     </script>
 </body>
