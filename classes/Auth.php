@@ -1,10 +1,10 @@
 <?php
 class Auth {
-    private $db;
+    private $conn;
     private $table_name = "users";
 
-    public function __construct($db) {
-        $this->db = $db;
+    public function __construct($conn) {
+        $this->conn = $conn;
     }
 
     public function register($data) {
@@ -13,7 +13,7 @@ class Auth {
                     (username, email, password, full_name) 
                     VALUES (:username, :email, :password, :full_name)";
 
-            $stmt = $this->db->prepare($query);
+            $stmt = $this->conn->prepare($query);
             $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
 
             $stmt->bindParam(":username", $data['username']);
@@ -52,7 +52,7 @@ class Auth {
             $query = "SELECT * FROM " . $this->table_name . " 
                     WHERE username = :username OR email = :username";
 
-            $stmt = $this->db->prepare($query);
+            $stmt = $this->conn->prepare($query);
             $stmt->bindParam(":username", $username);
             $stmt->execute();
 
@@ -108,7 +108,7 @@ class Auth {
                 SET auth_token = :token
                 WHERE id = :user_id";
         
-        $stmt = $this->db->prepare($query);
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":token", $token);
         $stmt->bindParam(":user_id", $userId);
         return $stmt->execute();
@@ -119,7 +119,7 @@ class Auth {
                 SET last_login = NOW() 
                 WHERE id = :user_id";
         
-        $stmt = $this->db->prepare($query);
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":user_id", $userId);
         return $stmt->execute();
     }
@@ -130,7 +130,7 @@ class Auth {
             $token = $_COOKIE['token'];
             
             $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? AND token = ?";
-            $stmt = $this->db->prepare($query);
+            $stmt = $this->conn->prepare($query);
             $stmt->execute([$userId, $token]);
             
             return $stmt->rowCount() > 0;
@@ -151,7 +151,7 @@ class Auth {
                     SET auth_token = NULL 
                     WHERE id = :user_id";
             
-            $stmt = $this->db->prepare($query);
+            $stmt = $this->conn->prepare($query);
             $stmt->bindParam(":user_id", $_COOKIE['user_id']);
             $stmt->execute();
         }
