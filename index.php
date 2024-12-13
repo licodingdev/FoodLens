@@ -269,31 +269,34 @@ if(!$auth->checkAuth()) {
                 <!-- Stats Section -->
                 <div class="grid grid-cols-3 gap-3 mb-8">
                     <?php
-                    // Auth sınıfı ile kullanıcı kontrolü
-                    if($auth->checkAuth()) {
-                        // Kullanıcının ID'sini al
-                        $userId = $auth->getUserId();
-                        
-                        // Toplam analiz sayısı
-                        $totalQuery = $db->prepare("SELECT COUNT(*) as total FROM food_analyses WHERE user_id = ?");
-                        $totalQuery->execute([$userId]);
-                        $totalAnalysis = $totalQuery->fetch(PDO::FETCH_ASSOC)['total'];
-
-                        // Günlük kalori
-                        $today = date('Y-m-d');
-                        $caloriesQuery = $db->prepare("SELECT SUM(calories) as daily FROM food_analyses WHERE user_id = ? AND DATE(created_at) = ?");
-                        $caloriesQuery->execute([$userId, $today]);
-                        $dailyCalories = $caloriesQuery->fetch(PDO::FETCH_ASSOC)['daily'] ?? 0;
-
-                        // Aktif gün sayısı
-                        $daysQuery = $db->prepare("SELECT COUNT(DISTINCT DATE(created_at)) as days FROM food_analyses WHERE user_id = ?");
-                        $daysQuery->execute([$userId]);
-                        $activeDays = $daysQuery->fetch(PDO::FETCH_ASSOC)['days'];
-                    } else {
-                        // Kullanıcı girişi yoksa varsayılan değerler
+                    try {
+                        // Varsayılan değerler
                         $totalAnalysis = 0;
                         $dailyCalories = 0;
                         $activeDays = 0;
+
+                        // Cookie'den user_id'yi al
+                        if($auth->checkAuth() && isset($_COOKIE['user_id'])) {
+                            $userId = $_COOKIE['user_id'];
+                            
+                            // Toplam analiz sayısı
+                            $totalQuery = $conn->prepare("SELECT COUNT(*) as total FROM food_analysis WHERE user_id = ?");
+                            $totalQuery->execute([$userId]);
+                            $totalAnalysis = $totalQuery->fetch(PDO::FETCH_ASSOC)['total'];
+
+                            // Günlük kalori
+                            $today = date('Y-m-d');
+                            $caloriesQuery = $conn->prepare("SELECT SUM(calories) as daily FROM food_analysis WHERE user_id = ? AND DATE(created_at) = ?");
+                            $caloriesQuery->execute([$userId, $today]);
+                            $dailyCalories = $caloriesQuery->fetch(PDO::FETCH_ASSOC)['daily'] ?? 0;
+
+                            // Aktif gün sayısı
+                            $daysQuery = $conn->prepare("SELECT COUNT(DISTINCT DATE(created_at)) as days FROM food_analysis WHERE user_id = ?");
+                            $daysQuery->execute([$userId]);
+                            $activeDays = $daysQuery->fetch(PDO::FETCH_ASSOC)['days'];
+                        }
+                    } catch (Exception $e) {
+                        error_log("Stats Error: " . $e->getMessage());
                     }
                     ?>
                     
