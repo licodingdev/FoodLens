@@ -484,7 +484,7 @@ if(!$auth->checkAuth()) {
                                         <div class="text-[11px] text-gray-400 font-light">Doğruluk</div>
                                     </div>
                                     <div class="text-center">
-                                        <div class="text-[13px] font-medium text-gray-900">2.4 sn</div>
+                                        <div class="text-[13px] font-medium text-gray-900" id="analysisTime">0.0 sn</div>
                                         <div class="text-[11px] text-gray-400 font-light">Süre</div>
                                     </div>
                                     <div class="text-center">
@@ -727,7 +727,7 @@ if(!$auth->checkAuth()) {
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center justify-between mb-1">
-                                <h3 class="text-white/80 text-sm font-medium">Hoş Geldin!</h3>
+                                <h3 class="text-white/80 text-sm font-medium">Ho�� Geldin!</h3>
                                 <span class="text-white/40 text-[10px]">1 hafta önce</span>
                             </div>
                             <p class="text-white/60 text-xs">FoodLens AI'ya hoş geldin! Hemen ilk analizini yapmaya başla.</p>
@@ -788,10 +788,9 @@ if(!$auth->checkAuth()) {
                 // Progress bar ve süre için değişkenler
                 const progressBar = document.getElementById('progressBar');
                 const progressText = document.getElementById('progressText');
-                const loadingStatus = document.getElementById('loadingStatus');
+                const analysisTime = document.getElementById('analysisTime');
                 let startTime = Date.now();
                 let progress = 0;
-                let seconds = 0;
 
                 // Progress bar animasyonu
                 const progressInterval = setInterval(() => {
@@ -800,12 +799,12 @@ if(!$auth->checkAuth()) {
                         progressBar.style.width = `${Math.min(progress, 100)}%`;
                         progressText.textContent = `${Math.min(Math.round(progress), 100)}%`;
                     }
-                }, 100); // Her 100ms'de bir güncelle
+                }, 100);
 
                 // Süre sayacı
                 const timeInterval = setInterval(() => {
-                    seconds = Math.floor((Date.now() - startTime) / 1000);
-                    loadingStatus.textContent = `Görsel analiz ediliyor... (${seconds}.${(Date.now() - startTime) % 1000}sn)`;
+                    const elapsedTime = (Date.now() - startTime) / 1000;
+                    analysisTime.textContent = `${elapsedTime.toFixed(1)} sn`;
                 }, 100);
 
                 try {
@@ -819,6 +818,10 @@ if(!$auth->checkAuth()) {
                     // İnterval'leri temizle
                     clearInterval(progressInterval);
                     clearInterval(timeInterval);
+
+                    // Son süreyi göster
+                    const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                    analysisTime.textContent = `${finalTime} sn`;
 
                     // Progress bar'ı tamamla
                     progressBar.style.width = '100%';
