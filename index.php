@@ -268,10 +268,11 @@ if(!$auth->checkAuth()) {
                 <!-- Stats Section -->
                 <div class="grid grid-cols-3 gap-3 mb-8">
                     <?php
-                    // Kullanıcının ID'sini cookie'den al
-                    $userId = isset($_COOKIE['user_id']) ? $_COOKIE['user_id'] : null;
-                    
-                    if ($userId) {
+                    // Auth sınıfı ile kullanıcı kontrolü
+                    if($auth->checkAuth()) {
+                        // Kullanıcının ID'sini al
+                        $userId = $auth->getUserId();
+                        
                         // Toplam analiz sayısı
                         $totalQuery = $db->prepare("SELECT COUNT(*) as total FROM food_analysis WHERE user_id = ?");
                         $totalQuery->execute([$userId]);
