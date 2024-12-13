@@ -90,16 +90,7 @@ $items = $dataset[$categoryName];
                                 <div class="text-[15px] font-medium text-gray-900">
                                     <?= htmlspecialchars($item['Yiyecek']) ?>
                                 </div>
-                                <div class="text-xs text-gray-500 mt-0.5 flex items-center">
-                                    <?php if (str_contains($item['Porsiyon'], 'ml')): ?>
-                                    <i class="fas fa-glass-water text-[10px] mr-1.5 text-gray-400"></i>
-                                    <?php elseif (str_contains($item['Porsiyon'], 'adet')): ?>
-                                    <i class="fas fa-circle-check text-[10px] mr-1.5 text-gray-400"></i>
-                                    <?php else: ?>
-                                    <i class="fas fa-weight-scale text-[10px] mr-1.5 text-gray-400"></i>
-                                    <?php endif; ?>
-                                    <?= htmlspecialchars($item['Porsiyon']) ?>
-                                </div>
+                                
                             </div>
                         </div>
                         <div class="flex flex-col items-end">
