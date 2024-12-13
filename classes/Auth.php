@@ -1,10 +1,10 @@
 <?php
 class Auth {
-    private $conn;
+    private $db;
     private $table_name = "users";
 
     public function __construct($db) {
-        $this->conn = $db;
+        $this->db = $db;
     }
 
     public function register($data) {
@@ -13,7 +13,7 @@ class Auth {
                     (username, email, password, full_name) 
                     VALUES (:username, :email, :password, :full_name)";
 
-            $stmt = $this->conn->prepare($query);
+            $stmt = $this->db->prepare($query);
             $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
 
             $stmt->bindParam(":username", $data['username']);
@@ -52,7 +52,7 @@ class Auth {
             $query = "SELECT * FROM " . $this->table_name . " 
                     WHERE username = :username OR email = :username";
 
-            $stmt = $this->conn->prepare($query);
+            $stmt = $this->db->prepare($query);
             $stmt->bindParam(":username", $username);
             $stmt->execute();
 
@@ -108,7 +108,7 @@ class Auth {
                 SET auth_token = :token
                 WHERE id = :user_id";
         
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->db->prepare($query);
         $stmt->bindParam(":token", $token);
         $stmt->bindParam(":user_id", $userId);
         return $stmt->execute();
@@ -119,25 +119,23 @@ class Auth {
                 SET last_login = NOW() 
                 WHERE id = :user_id";
         
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->db->prepare($query);
         $stmt->bindParam(":user_id", $userId);
         return $stmt->execute();
     }
 
     public function checkAuth() {
-        if(!isset($_COOKIE['user_id']) || !isset($_COOKIE['auth_token'])) {
-            return false;
+        if(isset($_COOKIE['user_id']) && isset($_COOKIE['token'])) {
+            $userId = $_COOKIE['user_id'];
+            $token = $_COOKIE['token'];
+            
+            $query = "SELECT * FROM " . $this->table_name . " WHERE id = ? AND token = ?";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([$userId, $token]);
+            
+            return $stmt->rowCount() > 0;
         }
-
-        $query = "SELECT * FROM " . $this->table_name . " 
-                WHERE id = :user_id AND auth_token = :token";
-
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":user_id", $_COOKIE['user_id']);
-        $stmt->bindParam(":token", $_COOKIE['auth_token']);
-        $stmt->execute();
-
-        return $stmt->fetch(PDO::FETCH_ASSOC) ? true : false;
+        return false;
     }
 
     public function logout() {
@@ -153,7 +151,7 @@ class Auth {
                     SET auth_token = NULL 
                     WHERE id = :user_id";
             
-            $stmt = $this->conn->prepare($query);
+            $stmt = $this->db->prepare($query);
             $stmt->bindParam(":user_id", $_COOKIE['user_id']);
             $stmt->execute();
         }
@@ -162,5 +160,12 @@ class Auth {
             'success' => true,
             'message' => 'Çıkış yapıldı'
         ];
+    }
+
+    public function getUserId() {
+        if(isset($_COOKIE['user_id'])) {
+            return $_COOKIE['user_id'];
+        }
+        return null;
     }
 }
