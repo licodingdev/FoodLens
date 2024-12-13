@@ -28,6 +28,10 @@ $items = $dataset[$categoryName];
             font-family: 'Ubuntu', sans-serif;
             background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
         }
+        .search-backdrop {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+            backdrop-filter: blur(8px);
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -47,61 +51,55 @@ $items = $dataset[$categoryName];
 
         <!-- Main Content -->
         <main class="flex-1 px-4 pt-6 pb-24">
-            <!-- Stats -->
-            <div class="grid grid-cols-3 gap-3 mb-6">
-                <div class="text-center">
-                    <div class="text-[13px] font-medium text-gray-900"><?= count($items) ?></div>
-                    <div class="text-[11px] text-gray-400 font-light">Ürün</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-[13px] font-medium text-gray-900">100g</div>
-                    <div class="text-[11px] text-gray-400 font-light">Porsiyon</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-[13px] font-medium text-gray-900">kcal</div>
-                    <div class="text-[11px] text-gray-400 font-light">Birim</div>
-                </div>
-            </div>
-
             <!-- Arama -->
-            <div class="mb-6">
+            <div class="sticky top-0 z-40 -mx-4 px-4 pb-4 search-backdrop">
                 <div class="relative">
                     <input type="text" 
                            id="searchInput"
                            placeholder="Bu kategori içinde ara..." 
-                           class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-gray-800 focus:border-transparent outline-none">
+                           class="w-full px-4 py-3.5 rounded-2xl bg-white/80 backdrop-blur border border-gray-100 focus:ring-2 focus:ring-gray-800 focus:border-transparent outline-none shadow-sm">
                     <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
 
             <!-- Yiyecek Listesi -->
-            <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <div class="divide-y divide-gray-100">
-                    <?php foreach ($items as $item): ?>
-                    <div class="food-item p-4 hover:bg-gray-50 transition-colors">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-utensils text-gray-400 text-xs"></i>
+            <div class="space-y-3">
+                <?php foreach ($items as $item): ?>
+                <div class="food-item bg-white rounded-2xl border border-gray-100 p-4 hover:border-gray-200 hover:shadow-sm transition-all duration-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-utensils text-gray-400"></i>
+                            </div>
+                            <div>
+                                <div class="text-[15px] font-medium text-gray-900">
+                                    <?= htmlspecialchars($item['Yiyecek']) ?>
                                 </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">
-                                        <?= htmlspecialchars($item['Yiyecek']) ?>
-                                    </div>
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        <?= htmlspecialchars($item['Porsiyon']) ?>
-                                    </div>
+                                <div class="text-xs text-gray-500 mt-0.5 flex items-center">
+                                    <i class="fas fa-scale-balanced text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?= htmlspecialchars($item['Porsiyon']) ?>
                                 </div>
                             </div>
-                            <div class="flex flex-col items-end">
-                                <div class="text-sm font-medium text-gray-900">
-                                    <?= htmlspecialchars($item['Kalori']) ?>
-                                </div>
-                                <div class="text-[10px] text-gray-400 mt-0.5">kalori</div>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <div class="text-[15px] font-medium text-gray-900">
+                                <?= htmlspecialchars($item['Kalori']) ?>
+                            </div>
+                            <div class="text-[10px] text-gray-400 mt-0.5 flex items-center">
+                                <i class="fas fa-fire-flame-simple text-amber-500 mr-1"></i>
+                                kalori
                             </div>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                </div>
+                <?php endforeach; ?>
+
+                <!-- No Results Message -->
+                <div id="noResults" class="hidden text-center py-12">
+                    <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-search text-gray-300 text-xl"></i>
+                    </div>
+                    <div class="text-sm text-gray-400">Sonuç bulunamadı</div>
                 </div>
             </div>
         </main>
@@ -136,6 +134,7 @@ $items = $dataset[$categoryName];
         // Arama fonksiyonu
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
+            let hasResults = false;
             
             document.querySelectorAll('.food-item').forEach(item => {
                 const foodName = item.querySelector('.text-gray-900').textContent.toLowerCase();
@@ -143,26 +142,15 @@ $items = $dataset[$categoryName];
                 
                 if (foodName.includes(searchTerm) || portion.includes(searchTerm)) {
                     item.style.display = '';
+                    hasResults = true;
                 } else {
                     item.style.display = 'none';
                 }
             });
 
-            // Hiç sonuç yoksa "Sonuç bulunamadı" mesajını göster
-            const visibleItems = document.querySelectorAll('.food-item[style="display: none;"]');
+            // Sonuç bulunamadı mesajını göster/gizle
             const noResultsMessage = document.getElementById('noResults');
-            
-            if (visibleItems.length === document.querySelectorAll('.food-item').length) {
-                if (!noResultsMessage) {
-                    const message = document.createElement('div');
-                    message.id = 'noResults';
-                    message.className = 'text-center py-8 text-gray-500 text-sm';
-                    message.textContent = 'Sonuç bulunamadı';
-                    document.querySelector('.divide-y').appendChild(message);
-                }
-            } else if (noResultsMessage) {
-                noResultsMessage.remove();
-            }
+            noResultsMessage.style.display = hasResults ? 'none' : 'block';
         });
     </script>
 </body>
