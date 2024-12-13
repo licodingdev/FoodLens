@@ -22,13 +22,24 @@ $user = $userQuery->fetch(PDO::FETCH_ASSOC);
 
 // Form gönderildi mi kontrol et
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['name'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $fullName = trim($_POST['full_name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $dailyCalorieGoal = (int)($_POST['daily_calorie_goal'] ?? 2000);
     $currentPassword = $_POST['current_password'] ?? '';
     $newPassword = $_POST['new_password'] ?? '';
     
     try {
-        // Email değişikliği
+        // Username kontrolü
+        if ($username !== $user['username']) {
+            $checkUsername = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
+            $checkUsername->execute([$username, $userId]);
+            if ($checkUsername->fetch()) {
+                throw new Exception('Bu kullanıcı adı zaten kullanımda');
+            }
+        }
+        
+        // Email kontrolü
         if ($email !== $user['email']) {
             $checkEmail = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
             $checkEmail->execute([$email, $userId]);
@@ -51,13 +62,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Güncelleme sorgusu
         $updateQuery = $db->prepare("
             UPDATE users 
-            SET name = ?, 
-                email = ?
+            SET username = ?,
+                full_name = ?,
+                email = ?,
+                daily_calorie_goal = ?
                 " . ($newPassword ? ", password = ?" : "") . "
             WHERE id = ?
         ");
         
-        $params = [$name, $email];
+        $params = [$username, $fullName, $email, $dailyCalorieGoal];
         if ($newPassword) {
             $params[] = $hashedPassword;
         }
@@ -125,8 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <div class="space-y-4">
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı Adı</label>
+                            <input type="text" name="username" value="<?= htmlspecialchars($user['username']) ?>" 
+                                   class="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-gray-300 focus:ring-0 text-sm"
+                                   placeholder="Kullanıcı adı">
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Ad Soyad</label>
-                            <input type="text" name="name" value="<?= htmlspecialchars($user['name'] ?? '') ?>" 
+                            <input type="text" name="full_name" value="<?= htmlspecialchars($user['full_name'] ?? '') ?>" 
                                    class="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-gray-300 focus:ring-0 text-sm"
                                    placeholder="Ad Soyad">
                         </div>
@@ -136,6 +156,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" 
                                    class="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-gray-300 focus:ring-0 text-sm"
                                    placeholder="E-posta">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Günlük Kalori Hedefi</label>
+                            <input type="number" name="daily_calorie_goal" value="<?= htmlspecialchars($user['daily_calorie_goal']) ?>" 
+                                   class="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-gray-300 focus:ring-0 text-sm"
+                                   placeholder="Günlük kalori hedefi">
                         </div>
                     </div>
                 </div>
