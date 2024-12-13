@@ -184,7 +184,7 @@ $user = $userQuery->fetch(PDO::FETCH_ASSOC);
         const formData = new FormData(form);
         
         try {
-            const response = await fetch('update_profile.php', {
+            const response = await fetch('/ajax/update_profile.php', {
                 method: 'POST',
                 body: formData
             });
