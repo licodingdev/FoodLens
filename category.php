@@ -69,14 +69,35 @@ $items = $dataset[$categoryName];
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">
-                                <i class="fas fa-utensils text-gray-400"></i>
+                                <?php
+                                // Kategori bazlı ikonlar
+                                $icon = match(true) {
+                                    str_contains(strtolower($item['Yiyecek']), 'çorba') => 'fa-bowl-hot',
+                                    str_contains(strtolower($item['Yiyecek']), 'salata') => 'fa-seedling',
+                                    str_contains(strtolower($item['Yiyecek']), 'içecek') || 
+                                    str_contains(strtolower($item['Yiyecek']), 'çay') || 
+                                    str_contains(strtolower($item['Yiyecek']), 'kahve') => 'fa-mug-hot',
+                                    str_contains(strtolower($item['Yiyecek']), 'et') => 'fa-drumstick-bite',
+                                    str_contains(strtolower($item['Yiyecek']), 'balık') => 'fa-fish',
+                                    str_contains(strtolower($item['Yiyecek']), 'pasta') || 
+                                    str_contains(strtolower($item['Yiyecek']), 'tatlı') => 'fa-cake-candles',
+                                    default => 'fa-utensils'
+                                };
+                                ?>
+                                <i class="fas <?= $icon ?> text-gray-400"></i>
                             </div>
                             <div>
                                 <div class="text-[15px] font-medium text-gray-900">
                                     <?= htmlspecialchars($item['Yiyecek']) ?>
                                 </div>
                                 <div class="text-xs text-gray-500 mt-0.5 flex items-center">
-                                    <i class="fas fa-scale-balanced text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php if (str_contains($item['Porsiyon'], 'ml')): ?>
+                                    <i class="fas fa-glass-water text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php elseif (str_contains($item['Porsiyon'], 'adet')): ?>
+                                    <i class="fas fa-circle-check text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php else: ?>
+                                    <i class="fas fa-weight-scale text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php endif; ?>
                                     <?= htmlspecialchars($item['Porsiyon']) ?>
                                 </div>
                             </div>
