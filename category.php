@@ -47,6 +47,22 @@ $items = $dataset[$categoryName];
 
         <!-- Main Content -->
         <main class="flex-1 px-4 pt-6 pb-24">
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="text-center">
+                    <div class="text-[13px] font-medium text-gray-900"><?= count($items) ?></div>
+                    <div class="text-[11px] text-gray-400 font-light">Ürün</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[13px] font-medium text-gray-900">100g</div>
+                    <div class="text-[11px] text-gray-400 font-light">Porsiyon</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-[13px] font-medium text-gray-900">kcal</div>
+                    <div class="text-[11px] text-gray-400 font-light">Birim</div>
+                </div>
+            </div>
+
             <!-- Arama -->
             <div class="mb-6">
                 <div class="relative">
@@ -64,16 +80,24 @@ $items = $dataset[$categoryName];
                     <?php foreach ($items as $item): ?>
                     <div class="food-item p-4 hover:bg-gray-50 transition-colors">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <div class="text-sm font-medium text-gray-900">
-                                    <?= htmlspecialchars($item['Yiyecek']) ?>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-utensils text-gray-400 text-xs"></i>
                                 </div>
-                                <div class="text-xs text-gray-500 mt-1">
-                                    <?= htmlspecialchars($item['Porsiyon']) ?>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <?= htmlspecialchars($item['Yiyecek']) ?>
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <?= htmlspecialchars($item['Porsiyon']) ?>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="text-sm font-medium text-gray-900">
-                                <?= htmlspecialchars($item['Kalori']) ?>
+                            <div class="flex flex-col items-end">
+                                <div class="text-sm font-medium text-gray-900">
+                                    <?= htmlspecialchars($item['Kalori']) ?>
+                                </div>
+                                <div class="text-[10px] text-gray-400 mt-0.5">kalori</div>
                             </div>
                         </div>
                     </div>
@@ -107,6 +131,7 @@ $items = $dataset[$categoryName];
             <div class="safe-area-bottom"></div>
         </nav>
     </div>
+
     <script>
         // Arama fonksiyonu
         document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -116,7 +141,6 @@ $items = $dataset[$categoryName];
                 const foodName = item.querySelector('.text-gray-900').textContent.toLowerCase();
                 const portion = item.querySelector('.text-gray-500').textContent.toLowerCase();
                 
-                // Hem yiyecek adında hem de porsiyon bilgisinde arama yap
                 if (foodName.includes(searchTerm) || portion.includes(searchTerm)) {
                     item.style.display = '';
                 } else {
