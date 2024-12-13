@@ -87,7 +87,7 @@ $items = $dataset[$categoryName];
                             </div>
                             <div class="text-[10px] text-gray-400 mt-0.5 flex items-center">
                                 <i class="fas fa-fire-flame-simple text-amber-500 mr-1"></i>
-                                kalori
+                                kalori değeri
                             </div>
                         </div>
                     </div>

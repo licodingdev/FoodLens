@@ -678,53 +678,44 @@ if(!$auth->checkAuth()) {
 
             <!-- Notifications List -->
             <div class="px-4 py-2">
-                <!-- Unread Notification -->
-                <div class="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-3 mb-2">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-star text-blue-400 text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h3 class="text-white text-sm font-medium">Premium'a Özel İndirim</h3>
-                                <span class="text-white/40 text-[10px]">2 dk önce</span>
-                            </div>
-                            <p class="text-white/60 text-xs">Yıllık plana geçişte %40 indirim fırsatını kaçırma!</p>
-                        </div>
-                    </div>
-                </div>
+                <?php
+                try {
+                    if($auth->checkAuth() && isset($_COOKIE['user_id'])) {
+                        $userId = $_COOKIE['user_id'];
+                        $query = $db->prepare("
+                            SELECT * FROM notifications 
+                            WHERE user_id = ? 
+                            ORDER BY created_at DESC 
+                            LIMIT 10
+                        ");
+                        $query->execute([$userId]);
+                        $notifications = $query->fetchAll(PDO::FETCH_ASSOC);
 
-                <!-- Read Notification -->
-                <div class="bg-white/5 backdrop-blur-sm border border-white/5 rounded-2xl p-3 mb-2">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-chart-simple text-green-400 text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h3 class="text-white/80 text-sm font-medium">Haftalık Rapor</h3>
-                                <span class="text-white/40 text-[10px]">2 gün önce</span>
+                        foreach($notifications as $notification) {
+                            $isUnread = !$notification['is_read'] ? 'bg-white/10' : 'bg-white/5';
+                            $titleOpacity = !$notification['is_read'] ? 'text-white' : 'text-white/80';
+                            ?>
+                            <div class="<?= $isUnread ?> backdrop-blur-sm border border-white/<?= !$notification['is_read'] ? '10' : '5' ?> rounded-2xl p-3 mb-2">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 rounded-xl bg-<?= $notification['icon_color'] ?>-500/10 flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-<?= $notification['icon'] ?> text-<?= $notification['icon_color'] ?>-400 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <h3 class="<?= $titleOpacity ?> text-sm font-medium"><?= htmlspecialchars($notification['title']) ?></h3>
+                                            <span class="text-white/40 text-[10px]"><?= timeAgo($notification['created_at']) ?></span>
+                                        </div>
+                                        <p class="text-white/60 text-xs"><?= htmlspecialchars($notification['message']) ?></p>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="text-white/60 text-xs">Geçen haftaki beslenme analizin hazır!</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Read Notification -->
-                <div class="bg-white/5 backdrop-blur-sm border border-white/5 rounded-2xl p-3">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-gift text-amber-400 text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h3 class="text-white/80 text-sm font-medium">Hoş Geldin!</h3>
-                                <span class="text-white/40 text-[10px]">1 hafta önce</span>
-                            </div>
-                            <p class="text-white/60 text-xs">FoodLens AI'ya hoş geldin! Hemen ilk analizini yapmaya başla.</p>
-                        </div>
-                    </div>
-                </div>
+                            <?php
+                        }
+                    }
+                } catch (Exception $e) {
+                    error_log("Notifications Error: " . $e->getMessage());
+                }
+                ?>
             </div>
         </div>
     </div>
