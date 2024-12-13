@@ -1,7 +1,7 @@
 <footer class="fixed bottom-0 left-0 right-0 bg-gray-50 border-t border-gray-100/50 z-40">
             <div class="max-w-md mx-auto px-4 h-12 flex items-center justify-around">
                 <!-- Analiz -->
-                <a href="#" class="relative group flex flex-col items-center">
+                <a href="index.php" class="relative group flex flex-col items-center">
                     <div class="w-7 h-7 flex items-center justify-center rounded-md bg-gray-800/10 text-gray-800 group-hover:bg-gray-800 group-hover:text-white transition-all duration-200">
                         <i class="fas fa-camera text-xs"></i>
                     </div>

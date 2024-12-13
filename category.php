@@ -90,7 +90,16 @@ $items = $dataset[$categoryName];
                                 <div class="text-[15px] font-medium text-gray-900">
                                     <?= htmlspecialchars($item['Yiyecek']) ?>
                                 </div>
-                                
+                                <div class="text-xs text-gray-500 mt-0.5 flex items-center">
+                                    <?php if (str_contains($item['Porsiyon'], 'ml')): ?>
+                                    <i class="fas fa-glass-water text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php elseif (str_contains($item['Porsiyon'], 'adet')): ?>
+                                    <i class="fas fa-circle-check text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php else: ?>
+                                    <i class="fas fa-weight-scale text-[10px] mr-1.5 text-gray-400"></i>
+                                    <?php endif; ?>
+                                    <?= htmlspecialchars($item['Porsiyon']) ?>
+                                </div>
                             </div>
                         </div>
                         <div class="flex flex-col items-end">
@@ -117,7 +126,29 @@ $items = $dataset[$categoryName];
         </main>
 
         <!-- Bottom Navigation -->
-        <?php include 'footer.php'; ?>
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100">
+            <div class="max-w-4xl mx-auto px-4 py-3">
+                <div class="flex items-center justify-around">
+                    <a href="index.php" class="flex flex-col items-center">
+                        <i class="fas fa-camera text-gray-400 mb-1"></i>
+                        <span class="text-xs text-gray-600">Analiz</span>
+                    </a>
+                    <a href="calories.php" class="flex flex-col items-center">
+                        <i class="fas fa-book-open text-gray-800 mb-1"></i>
+                        <span class="text-xs text-gray-900 font-medium">Kalori Cetveli</span>
+                    </a>
+                    <a href="history.php" class="flex flex-col items-center">
+                        <i class="fas fa-history text-gray-400 mb-1"></i>
+                        <span class="text-xs text-gray-600">Geçmiş</span>
+                    </a>
+                    <a href="profile.php" class="flex flex-col items-center">
+                        <i class="fas fa-user text-gray-400 mb-1"></i>
+                        <span class="text-xs text-gray-600">Profil</span>
+                    </a>
+                </div>
+            </div>
+            <div class="safe-area-bottom"></div>
+        </nav>
     </div>
 
     <script>
