@@ -266,24 +266,45 @@ if(!$auth->checkAuth()) {
 
                 <!-- Stats Section -->
                 <div class="grid grid-cols-3 gap-3 mb-8">
+                    <?php
+                    // Kullanıcının istatistiklerini çek
+                    $userId = $_SESSION['user_id'];
+                    
+                    // Toplam analiz sayısı
+                    $totalQuery = $db->prepare("SELECT COUNT(*) as total FROM food_analysis WHERE user_id = ?");
+                    $totalQuery->execute([$userId]);
+                    $totalAnalysis = $totalQuery->fetch(PDO::FETCH_ASSOC)['total'];
+
+                    // Günlük kalori
+                    $today = date('Y-m-d');
+                    $caloriesQuery = $db->prepare("SELECT SUM(calories) as daily FROM food_analysis WHERE user_id = ? AND DATE(created_at) = ?");
+                    $caloriesQuery->execute([$userId, $today]);
+                    $dailyCalories = $caloriesQuery->fetch(PDO::FETCH_ASSOC)['daily'] ?? 0;
+
+                    // Aktif gün sayısı
+                    $daysQuery = $db->prepare("SELECT COUNT(DISTINCT DATE(created_at)) as days FROM food_analysis WHERE user_id = ?");
+                    $daysQuery->execute([$userId]);
+                    $activeDays = $daysQuery->fetch(PDO::FETCH_ASSOC)['days'];
+                    ?>
+                    
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/20 hover:bg-white/20 transition-colors duration-200">
                         <div class="text-blue-100/60 text-xs mb-1">Toplam Analiz</div>
                         <div class="text-white font-semibold flex items-baseline space-x-1">
-                            <span class="text-xl" data-stat="total_analysis">0</span>
+                            <span class="text-xl"><?= number_format($totalAnalysis, 0, ',', '.') ?></span>
                             <span class="text-blue-100/50 text-xs">adet</span>
                         </div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/20 hover:bg-white/20 transition-colors duration-200">
                         <div class="text-blue-100/60 text-xs mb-1">Günlük Kalori</div>
                         <div class="text-white font-semibold flex items-baseline space-x-1">
-                            <span class="text-xl" data-stat="daily_calories">0</span>
+                            <span class="text-xl"><?= number_format($dailyCalories, 0, ',', '.') ?></span>
                             <span class="text-blue-100/50 text-xs">kcal</span>
                         </div>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/20 hover:bg-white/20 transition-colors duration-200">
                         <div class="text-blue-100/60 text-xs mb-1">Aktif Gün</div>
                         <div class="text-white font-semibold flex items-baseline space-x-1">
-                            <span class="text-xl" data-stat="active_days">0</span>
+                            <span class="text-xl"><?= number_format($activeDays, 0, ',', '.') ?></span>
                             <span class="text-blue-100/50 text-xs">gün</span>
                         </div>
                     </div>
@@ -742,7 +763,7 @@ if(!$auth->checkAuth()) {
                 uploadSection.classList.add('hidden');
                 loadingSection.classList.remove('hidden');
 
-                // Progress bar ve s��re için değişkenler
+                // Progress bar ve süre için değişkenler
                 const progressBar = document.getElementById('progressBar');
                 const progressText = document.getElementById('progressText');
                 const analysisTime = document.getElementById('analysisTime');
@@ -895,7 +916,7 @@ if(!$auth->checkAuth()) {
                 });
             }
 
-            // Sonuç bölümünü g��ster
+            // Sonuç bölümünü göster
             const resultSection = document.getElementById('resultSection');
             if (resultSection) {
                 resultSection.classList.remove('hidden');
