@@ -141,7 +141,7 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
                             <div class="flex items-start space-x-4">
                                 <!-- Image Preview -->
                                 <div class="w-20 h-20 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden">
-                                    <img src="<?= htmlspecialchars($analysis['image_url']) ?>" 
+                                    <img src="<?= $analysis['image_path'] ? 'uploads/' . $analysis['image_path'] : 'assets/images/placeholder-food.png' ?>" 
                                          alt="Food Analysis" 
                                          class="w-full h-full object-cover">
                                 </div>
@@ -162,7 +162,7 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
                                                 <?= number_format($analysis['calories']) ?> kcal
                                             </div>
                                             <div class="text-gray-400 text-xs mt-0.5">
-                                                <?= number_format($analysis['portion_size']) ?> gr
+                                                <?= $analysis['portion_count'] ?> <?= htmlspecialchars($analysis['portion_amount']) ?>
                                             </div>
                                         </div>
                                     </div>
