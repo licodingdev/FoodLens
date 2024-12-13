@@ -161,10 +161,7 @@ $analyses = $query->fetchAll(PDO::FETCH_ASSOC);
                                             <div class="text-gray-900 font-medium">
                                                 <?= number_format($analysis['calories']) ?> kcal
                                             </div>
-                                            <div class="text-gray-400 text-xs mt-0.5">
-                                                <?= $analysis['portion_count'] ?><span class="text-gray-300">por. </span> <?= htmlspecialchars($analysis['portion_amount']) ?> 
-                                                
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                     
