@@ -684,7 +684,7 @@ if(!$auth->checkAuth()) {
                         $userId = $_COOKIE['user_id'];
                         $query = $db->prepare("
                             SELECT * FROM notifications 
-                            WHERE user_id = ? 
+                            WHERE user_id = ? OR user_id IS NULL  -- Kişiye özel VE genel bildirimler
                             ORDER BY created_at DESC 
                             LIMIT 10
                         ");
