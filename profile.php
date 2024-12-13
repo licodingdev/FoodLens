@@ -19,76 +19,6 @@ $userId = $_COOKIE['user_id'];
 $userQuery = $db->prepare("SELECT * FROM users WHERE id = ?");
 $userQuery->execute([$userId]);
 $user = $userQuery->fetch(PDO::FETCH_ASSOC);
-
-// Form gönderildi mi kontrol et
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = trim($_POST['username'] ?? '');
-    $fullName = trim($_POST['full_name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $dailyCalorieGoal = (int)($_POST['daily_calorie_goal'] ?? 2000);
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    
-    try {
-        // Username kontrolü
-        if ($username !== $user['username']) {
-            $checkUsername = $db->prepare("SELECT id FROM users WHERE username = ? AND id != ?");
-            $checkUsername->execute([$username, $userId]);
-            if ($checkUsername->fetch()) {
-                throw new Exception('Bu kullanıcı adı zaten kullanımda');
-            }
-        }
-        
-        // Email kontrolü
-        if ($email !== $user['email']) {
-            $checkEmail = $db->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
-            $checkEmail->execute([$email, $userId]);
-            if ($checkEmail->fetch()) {
-                throw new Exception('Bu email adresi zaten kullanımda');
-            }
-        }
-        
-        // Şifre değişikliği kontrolü
-        if ($newPassword) {
-            if (!password_verify($currentPassword, $user['password'])) {
-                throw new Exception('Mevcut şifreniz hatalı');
-            }
-            if (strlen($newPassword) < 6) {
-                throw new Exception('Yeni şifreniz en az 6 karakter olmalıdır');
-            }
-            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-        }
-        
-        // Güncelleme sorgusu
-        $updateQuery = $db->prepare("
-            UPDATE users 
-            SET username = ?,
-                full_name = ?,
-                email = ?,
-                daily_calorie_goal = ?
-                " . ($newPassword ? ", password = ?" : "") . "
-            WHERE id = ?
-        ");
-        
-        $params = [$username, $fullName, $email, $dailyCalorieGoal];
-        if ($newPassword) {
-            $params[] = $hashedPassword;
-        }
-        $params[] = $userId;
-        
-        $updateQuery->execute($params);
-        $success = true;
-        $message = 'Profil bilgileriniz güncellendi';
-        
-        // Kullanıcı bilgilerini yeniden al
-        $userQuery->execute([$userId]);
-        $user = $userQuery->fetch(PDO::FETCH_ASSOC);
-        
-    } catch (Exception $e) {
-        $success = false;
-        $message = $e->getMessage();
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -131,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Main Content -->
         <main class="flex-1 px-4 pt-6 pb-24">
-            <form method="POST" class="space-y-6">
+            <form id="profileForm" class="space-y-6">
                 <!-- Profil Bilgileri -->
                 <div class="bg-white rounded-2xl border border-gray-100 p-4">
                     <h3 class="text-sm font-medium text-gray-900 mb-4">Profil Bilgileri</h3>
@@ -142,13 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="text" name="username" value="<?= htmlspecialchars($user['username']) ?>" 
                                    class="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-gray-300 focus:ring-0 text-sm"
                                    placeholder="Kullanıcı adı">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Ad Soyad</label>
-                            <input type="text" name="full_name" value="<?= htmlspecialchars($user['full_name'] ?? '') ?>" 
-                                   class="w-full h-11 px-4 rounded-xl border border-gray-200 focus:border-gray-300 focus:ring-0 text-sm"
-                                   placeholder="Ad Soyad">
                         </div>
 
                         <div>
@@ -227,5 +150,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     showToast('<?= addslashes($message) ?>', <?= $success ? 'false' : 'true' ?>);
     </script>
     <?php endif; ?>
+
+    <script>
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch('/ajax/update_profile.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            showToast(result.message, !result.success);
+            
+            if (result.success) {
+                // Başarılı güncelleme durumunda sayfayı yenile
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        } catch (error) {
+            showToast('Bir hata oluştu', true);
+            console.error('Error:', error);
+        }
+    });
+    </script>
 </body>
 </html> 
