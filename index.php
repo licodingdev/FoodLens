@@ -762,7 +762,7 @@ if(!$auth->checkAuth()) {
 
             analyzeBtn.addEventListener('click', async () => {
                 if (!fileInput.files || !fileInput.files[0]) {
-                    alert('Lütfen bir görsel seçin');
+                    showToast('Lütfen bir görsel seçin', true);
                     return;
                 }
 
