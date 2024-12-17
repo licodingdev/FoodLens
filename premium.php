@@ -64,7 +64,7 @@ if(!$auth->checkAuth()) {
             <!-- Plans -->
             <div class="space-y-4 mb-8">
                 <!-- Aylık Plan -->
-                <label class="block">
+                <label class="block cursor-pointer">
                     <input type="radio" name="plan" value="monthly" class="hidden peer">
                     <div class="p-4 rounded-2xl bg-white border-2 border-gray-100 peer-checked:border-amber-300 peer-checked:bg-amber-50/50 transition-all duration-200">
                         <div class="flex items-center justify-between mb-3">
@@ -73,7 +73,7 @@ if(!$auth->checkAuth()) {
                                     <i class="fas fa-calendar text-amber-600 text-xs"></i>
                                 </div>
                                 <div>
-                                <button id="aylik" onclick="startMonthlySubscription()">Aylık Paket</button>    
+                                    <div class="text-sm font-medium text-gray-900" onclick="startMonthlySubscription()">Aylık Paket</div>
                                     <p class="text-xs text-gray-500">Otomatik olarak <strong>yenilenmez!</strong></p>
                                 </div>
                             </div>
@@ -86,19 +86,17 @@ if(!$auth->checkAuth()) {
                 </label>
 
                 <!-- Yıllık Plan -->
-                <label class="block">
+                <label class="block cursor-pointer">
                     <input type="radio" name="plan" value="yearly" class="hidden peer" checked>
                     <div class="p-4 rounded-2xl bg-white border-2 border-gray-100 peer-checked:border-amber-300 peer-checked:bg-amber-50/50 transition-all duration-200 relative overflow-hidden">
-                        <!-- İndirim Badge - Pozisyon düzeltildi -->
                         <div class="absolute -right-12 top-3 bg-green-500 text-white text-[10px] px-10 py-0.5 rotate-45 z-10">%40 İndirim</div>
-                        
                         <div class="flex items-center justify-between mb-3 relative z-20">
                             <div class="flex items-center space-x-3">
                                 <div class="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center">
                                     <i class="fas fa-star text-amber-600 text-xs"></i>
                                 </div>
                                 <div>
-                                <button id="yillik" onclick="startYearlySubscription()">Yıllık Paket</button>
+                                    <div class="text-sm font-medium text-gray-900" onclick="startYearlySubscription()">Yıllık Paket</div>
                                     <p class="text-xs text-gray-500">Otomatik olarak <strong>yenilenmez!</strong></p>
                                 </div>
                             </div>
@@ -161,7 +159,8 @@ if(!$auth->checkAuth()) {
         <!-- Fixed Bottom Bar -->
         <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100">
             <div class="max-w-md mx-auto bg-gray-50 px-4 py-4">
-                <button class="w-full h-12 bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl text-white text-sm font-medium flex items-center justify-center space-x-2 hover:from-gray-900 hover:to-black transition-all">
+                <button onclick="startSelectedSubscription()" 
+                        class="w-full h-12 bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl text-white text-sm font-medium flex items-center justify-center space-x-2 hover:from-gray-900 hover:to-black transition-all">
                     <i class="fas fa-crown text-amber-300 text-xs"></i>
                     <span>Premium'a Yükselt</span>
                 </button>
@@ -172,26 +171,59 @@ if(!$auth->checkAuth()) {
             <div class="safe-area-bottom"></div>
         </div>
     </div>
+
+    <script>
+    // Seçili planı takip etmek için değişken
+    let selectedPlan = 'yearly'; // Varsayılan olarak yıllık plan seçili
+
+    // Radio butonlarını dinle
+    document.querySelectorAll('input[name="plan"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            selectedPlan = e.target.value;
+        });
+    });
+
+    // Aylık abonelik başlat
+    function startMonthlySubscription() {
+        if (window.Android) {
+            console.log('Monthly subscription requested');
+            Android.purchaseMonthlySubscription();
+        } else {
+            console.log('Android interface not found');
+            // Test için
+            alert('Aylık abonelik başlatıldı (Test Modu)');
+        }
+    }
+
+    // Yıllık abonelik başlat
+    function startYearlySubscription() {
+        if (window.Android) {
+            console.log('Yearly subscription requested');
+            Android.purchaseYearlySubscription();
+        } else {
+            console.log('Android interface not found');
+            // Test için
+            alert('Yıllık abonelik başlatıldı (Test Modu)');
+        }
+    }
+
+    // Seçili plana göre abonelik başlat
+    function startSelectedSubscription() {
+        if (selectedPlan === 'monthly') {
+            startMonthlySubscription();
+        } else {
+            startYearlySubscription();
+        }
+    }
+
+    // Sayfa yüklendiğinde Android köprüsünü kontrol et
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.Android) {
+            console.log('Android interface is available');
+        } else {
+            console.log('Running in browser mode - Android interface not available');
+        }
+    });
+    </script>
 </body>
-
-
-
-
-<script>
-function startMonthlySubscription() {
-    if (window.Android) {
-        Android.purchaseMonthlySubscription();
-    } else {
-        console.log('Android interface not found');
-    }
-}
-
-function startYearlySubscription() {
-    if (window.Android) {
-        Android.purchaseYearlySubscription();
-    } else {
-        console.log('Android interface not found');
-    }
-}
-</script>
 </html>
