@@ -73,7 +73,7 @@ if(!$auth->checkAuth()) {
                                     <i class="fas fa-calendar text-amber-600 text-xs"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-medium text-gray-900">Aylık Plan</h3>
+                                <button id="aylik" onclick="startMonthlySubscription()">Aylık Paket</button>    
                                     <p class="text-xs text-gray-500">Otomatik olarak <strong>yenilenmez!</strong></p>
                                 </div>
                             </div>
@@ -98,7 +98,7 @@ if(!$auth->checkAuth()) {
                                     <i class="fas fa-star text-amber-600 text-xs"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-medium text-gray-900">Yıllık Plan</h3>
+                                <button id="yillik" onclick="startYearlySubscription()">Yıllık Paket</button>
                                     <p class="text-xs text-gray-500">Otomatik olarak <strong>yenilenmez!</strong></p>
                                 </div>
                             </div>
@@ -173,4 +173,25 @@ if(!$auth->checkAuth()) {
         </div>
     </div>
 </body>
+
+
+
+
+<script>
+function startMonthlySubscription() {
+    if (window.Android) {
+        Android.purchaseMonthlySubscription();
+    } else {
+        console.log('Android interface not found');
+    }
+}
+
+function startYearlySubscription() {
+    if (window.Android) {
+        Android.purchaseYearlySubscription();
+    } else {
+        console.log('Android interface not found');
+    }
+}
+</script>
 </html>

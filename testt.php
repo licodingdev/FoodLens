@@ -175,23 +175,4 @@ if(!$auth->checkAuth()) {
 </body>
 
 
-
-
-<script>
-function startMonthlySubscription() {
-    if (window.Android) {
-        Android.purchaseMonthlySubscription();
-    } else {
-        console.log('Android interface not found');
-    }
-}
-
-function startYearlySubscription() {
-    if (window.Android) {
-        Android.purchaseYearlySubscription();
-    } else {
-        console.log('Android interface not found');
-    }
-}
-</script>
 </html>
