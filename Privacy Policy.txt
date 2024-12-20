@@ -1,0 +1,61 @@
+# FoodLens Gizlilik Sözleşmesi
+
+**Son Güncelleme Tarihi:** [Tarih]
+
+## 1. Giriş
+
+FoodLens uygulamasını ("Uygulama") kullanarak, bu Gizlilik Sözleşmesi'nde belirtilen şartları kabul etmiş olursunuz. Bu sözleşme, kullanıcılarımızın gizliliğini korumak ve bilgilerinin nasıl kullanıldığını açıklamak amacıyla hazırlanmıştır.
+
+## 2. Toplanan Bilgiler
+
+Uygulamamız aşağıdaki bilgileri toplayabilir:
+
+- Kamera izinleri ve fotoğraflar
+- Cihaz bilgileri (işletim sistemi, cihaz modeli)
+- Kullanım istatistikleri
+- Uygulama performans verileri
+
+## 3. Bilgilerin Kullanımı
+
+Topladığımız bilgiler şu amaçlarla kullanılmaktadır:
+
+- Uygulama işlevselliğinin sağlanması
+- Kullanıcı deneyiminin iyileştirilmesi
+- Teknik sorunların giderilmesi
+- Uygulama performansının analizi
+
+## 4. Bilgi Güvenliği
+
+Kullanıcı verilerinin güvenliği bizim için önemlidir. Verilerinizi korumak için endüstri standardı güvenlik önlemleri kullanmaktayız.
+
+## 5. Üçüncü Taraflarla Bilgi Paylaşımı
+
+Kullanıcı bilgilerini üçüncü taraflarla sadece aşağıdaki durumlarda paylaşırız:
+
+- Yasal zorunluluk durumunda
+- Kullanıcının açık rızası olduğunda
+- Hizmet sağlayıcılarımızla (analitik hizmetleri gibi)
+
+## 6. Çocukların Gizliliği
+
+Uygulamamız 13 yaşından küçük çocuklardan bilerek kişisel bilgi toplamamaktadır.
+
+## 7. Değişiklikler
+
+Bu gizlilik sözleşmesinde zaman zaman değişiklikler yapabiliriz. Önemli değişiklikler olması durumunda kullanıcılarımızı bilgilendireceğiz.
+
+## 8. İletişim
+
+Gizlilik politikamızla ilgili sorularınız için aşağıdaki iletişim bilgilerinden bize ulaşabilirsiniz:
+
+E-posta: [E-posta adresi]
+Web sitesi: [Web sitesi adresi]
+
+## 9. Çerezler ve Takip Teknolojileri
+
+Uygulamamız, kullanıcı deneyimini iyileştirmek için çerezler ve benzer takip teknolojileri kullanabilir.
+
+## 10. Veri Saklama
+
+Kullanıcı verilerini yalnızca gerekli olduğu sürece saklarız ve kullanıcının talebi üzerine silebiliriz.
+
